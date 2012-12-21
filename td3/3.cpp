@@ -610,7 +610,7 @@ int main( int argc, char **argv )
 
      ////////////////////// Skybox
     // nb:  
-    DoTheImportThing("obj/cube_reversed.obj", skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 0, 0.3);
+    DoTheImportThing("obj/cube_reversed.obj", skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 0, 0.010);
     float skybox_translation[3] = {00., 0, 0.};
     BindingInstanceLike(skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 
                         vao[74], &vbo[0], 296, skybox_translation);
@@ -762,175 +762,174 @@ int main( int argc, char **argv )
       mat4fInverse(viewProjection, iviewProjection);
 
       glBindFramebuffer(GL_FRAMEBUFFER, gbuffer.fbo);
-      glDrawBuffers(gbuffer.outCount, gbuffer.drawBuffers);
 
-      // Viewport 
-      glViewport( 0, 0, width, height  );
-      camera.setViewport(0, 0, width, height);
+          glDrawBuffers(gbuffer.outCount, gbuffer.drawBuffers);
 
-      // Default states
-      glEnable(GL_DEPTH_TEST);
+          // Viewport 
+          glViewport( 0, 0, width, height  );
+          camera.setViewport(0, 0, width, height);
 
-      // Clear the front buffer
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+          // Default states
+          glEnable(GL_DEPTH_TEST);
 
-
-
-      // Bind gbuffer shader
-      glUseProgram(gbuffer_shader.program);
-      
-      // Upload uniforms
-      glUniformMatrix4fv(gbuffer_projectionLocation, 1, 0, projection);
-      glUniformMatrix4fv(gbuffer_viewLocation, 1, 0, worldToView);
-      glUniformMatrix4fv(gbuffer_objectLocation, 1, 0, objectToWorld);
-      
-
-      // --------------------------------------------------------------------
-      //------------------------- ON AFFICHE LA --------------------------
-      //---------------------------------------------------------------------
-
-      glUniform1i(gbuffer_diffuseLocation, 5);
-      glUniform1i(gbuffer_specLocation, 6);
-
-      glActiveTexture(GL_TEXTURE5);
-      glBindTexture(GL_TEXTURE_2D, textures[5]);
-      glActiveTexture(GL_TEXTURE6);
-      glBindTexture(GL_TEXTURE_2D, textures[6]);
-
-      // Render vaos  
-      glBindVertexArray(vao[0]);
-      glUniform1f(gbuffer_timeLocation, 0);
-      glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
-
-      glUniform1i(gbuffer_diffuseLocation,0);
-      glUniform1i(gbuffer_specLocation, 1);
-       // Bind textures
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, textures[0]);
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, textures[1]);
-
-      for(int i = 0; i < 40; ++i){// 40
-          glBindVertexArray(vao[i+19]);
-          glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-      }
-
-      glUniform1f(gbuffer_timeLocation, t);
-      for(int i = 0; i < 15; ++i){// 15
-          glBindVertexArray(vao[i+59]);
-          glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-      }
-
-      glUniform1i(gbuffer_diffuseLocation, 7);
-       // Bind textures
-      glActiveTexture(GL_TEXTURE7);
-      glBindTexture(GL_TEXTURE_2D, textures[7]);
-
-      glUniform1f(gbuffer_timeLocation, 0);
-      for(int i = 0; i < 3; ++i){ // 3
-          glBindVertexArray(vao[i+2]);
-          glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
-      }
-
-      glUniform1i(gbuffer_diffuseLocation, 8);
-      // Bind textures
-      glActiveTexture(GL_TEXTURE8);
-      glBindTexture(GL_TEXTURE_2D, textures[8]);
-
-      for(int i = 0; i < 14; ++i){// 14
-          glBindVertexArray(vao[i+5]);
-          glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-      }
-     
-
-    
-
-     
-      // Bind gbuffer shader
-      glUseProgram(skybox_shader.program);
-
-      
-      // Upload uniforms
-      glUniformMatrix4fv(skybox_projectionLocation, 1, 0, projection);
-      glUniformMatrix4fv(skybox_viewLocation, 1, 0, worldToView);
-      glUniformMatrix4fv(skybox_objectLocation, 1, 0, objectToWorld);
-      glUniform1i(skybox_boxLocation, 4);
-      
-      // Bind textures
-      glActiveTexture(GL_TEXTURE4);
-      glBindTexture(GL_TEXTURE_2D, textures[4]);
+          // Clear the front buffer
+          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-      glBindVertexArray(vao[74]);
-      glDrawElements(GL_TRIANGLES, skybox_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-      
+          glDisable(GL_DEPTH_TEST);
+          // Bind gbuffer shader
+          glUseProgram(skybox_shader.program);
+
+          
+          // Upload uniforms
+          glUniformMatrix4fv(skybox_projectionLocation, 1, 0, projection);
+          glUniformMatrix4fv(skybox_viewLocation, 1, 0, worldToView);
+          glUniformMatrix4fv(skybox_objectLocation, 1, 0, objectToWorld);
+          glUniform1i(skybox_boxLocation, 4);
+          
+          // Bind textures
+          glActiveTexture(GL_TEXTURE4);
+          glBindTexture(GL_TEXTURE_2D, textures[4]);
 
 
-    
-      // Compute light positions
-      float lightPosition[3] = { -4.0, 500.0, -4.0};
-      // float lightPosition[3] = { sin(t/10) * 5.0, 50.0, cos(t/10) * 5.0};
-      float lightTarget[3] = { 0.0, 0.0, 0.0};
-      float lightDirection[3];
-      float lightUp[3] = { 0.0, 1.0, 0.0};
-      vec3fSub(lightTarget, lightPosition, lightDirection);
-      vec3fNormalize(lightDirection, vec3fNorm(lightDirection));
-      float lightColor[3] = {1.0, 1.0, 1.0};
-      float lightIntensity = 1.0;
+          glBindVertexArray(vao[74]);
+          glDrawElements(GL_TRIANGLES, skybox_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          
+          glEnable(GL_DEPTH_TEST);
 
-      // Build shadow matrices
-      float shadowProjection[16];
-      float worldToLight[16];
-      lookAt(lightPosition, lightTarget, lightUp, worldToLight);
-      perspective(60.f, 1.f, 1.0f, 1000.f, shadowProjection );
-      
-      
-      // Buil projection matrice
-      float projectionLight[16];     
-      float projectionLightBias[16];     
-      mat4fMul( worldToLight, shadowProjection,  projectionLight);
-      mat4fMul( projectionLight, MAT4F_M1_P1_TO_P0_P1, projectionLightBias);
-	
-       
-     
+
+
+          // Bind gbuffer shader
+          glUseProgram(gbuffer_shader.program);
+          
+          // Upload uniforms
+          glUniformMatrix4fv(gbuffer_projectionLocation, 1, 0, projection);
+          glUniformMatrix4fv(gbuffer_viewLocation, 1, 0, worldToView);
+          glUniformMatrix4fv(gbuffer_objectLocation, 1, 0, objectToWorld);
+          
+
+          // --------------------------------------------------------------------
+          //------------------------- ON AFFICHE LA --------------------------
+          //---------------------------------------------------------------------
+
+          glUniform1i(gbuffer_diffuseLocation, 5);
+          glUniform1i(gbuffer_specLocation, 6);
+
+          glActiveTexture(GL_TEXTURE5);
+          glBindTexture(GL_TEXTURE_2D, textures[5]);
+          glActiveTexture(GL_TEXTURE6);
+          glBindTexture(GL_TEXTURE_2D, textures[6]);
+
+          // Render vaos  
+          glBindVertexArray(vao[0]);
+          glUniform1f(gbuffer_timeLocation, 0);
+          glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+
+          glUniform1i(gbuffer_diffuseLocation,0);
+          glUniform1i(gbuffer_specLocation, 1);
+           // Bind textures
+          glActiveTexture(GL_TEXTURE0);
+          glBindTexture(GL_TEXTURE_2D, textures[0]);
+          glActiveTexture(GL_TEXTURE1);
+          glBindTexture(GL_TEXTURE_2D, textures[1]);
+
+          for(int i = 0; i < 40; ++i){// 40
+              glBindVertexArray(vao[i+19]);
+              glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+
+          glUniform1f(gbuffer_timeLocation, t);
+          for(int i = 0; i < 15; ++i){// 15
+              glBindVertexArray(vao[i+59]);
+              glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+
+          glUniform1i(gbuffer_diffuseLocation, 7);
+           // Bind textures
+          glActiveTexture(GL_TEXTURE7);
+          glBindTexture(GL_TEXTURE_2D, textures[7]);
+
+          glUniform1f(gbuffer_timeLocation, 0);
+          for(int i = 0; i < 3; ++i){ // 3
+              glBindVertexArray(vao[i+2]);
+              glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
+          }
+
+          glUniform1i(gbuffer_diffuseLocation, 8);
+          // Bind textures
+          glActiveTexture(GL_TEXTURE8);
+          glBindTexture(GL_TEXTURE_2D, textures[8]);
+
+          for(int i = 0; i < 14; ++i){// 14
+              glBindVertexArray(vao[i+5]);
+              glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+         
+
+        
+
+        
+          // Compute light positions
+          float lightPosition[3] = { -4.0, 500.0, -4.0};
+          // float lightPosition[3] = { sin(t/10) * 5.0, 50.0, cos(t/10) * 5.0};
+          float lightTarget[3] = { 0.0, 0.0, 0.0};
+          float lightDirection[3];
+          float lightUp[3] = { 0.0, 1.0, 0.0};
+          vec3fSub(lightTarget, lightPosition, lightDirection);
+          vec3fNormalize(lightDirection, vec3fNorm(lightDirection));
+          float lightColor[3] = {1.0, 1.0, 1.0};
+          float lightIntensity = 1.0;
+
+          // Build shadow matrices
+          float shadowProjection[16];
+          float worldToLight[16];
+          lookAt(lightPosition, lightTarget, lightUp, worldToLight);
+          perspective(60.f, 1.f, 1.0f, 1000.f, shadowProjection );
+          
+          
+          // Buil projection matrice
+          float projectionLight[16];     
+          float projectionLightBias[16];     
+          mat4fMul( worldToLight, shadowProjection,  projectionLight);
+          mat4fMul( projectionLight, MAT4F_M1_P1_TO_P0_P1, projectionLightBias);
 
 
       glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer.fbo);
 
-       // Clear the front buffer
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+          // Clear the front buffer
+          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      glViewport( 0, 0, 512, 512);
-     
-     
-      // Bind shadow shader
-      glUseProgram(shadowgen_shader.program);
-      // Upload uniforms for shaddws shader
-      glUniformMatrix4fv(shadowgen_projectionLocation, 1, 0, shadowProjection);
-      glUniformMatrix4fv(shadowgen_viewLocation, 1, 0, worldToLight);
-      glUniformMatrix4fv(shadowgen_objectLocation, 1, 0, objectToWorld);
-      glUniform1f(shadowgen_timeLocation, t);
+          glViewport( 0, 0, 512, 512);
+         
+         
+          // Bind shadow shader
+          glUseProgram(shadowgen_shader.program);
+          // Upload uniforms for shaddws shader
+          glUniformMatrix4fv(shadowgen_projectionLocation, 1, 0, shadowProjection);
+          glUniformMatrix4fv(shadowgen_viewLocation, 1, 0, worldToLight);
+          glUniformMatrix4fv(shadowgen_objectLocation, 1, 0, objectToWorld);
+          glUniform1f(shadowgen_timeLocation, t);
 
-      // Render vaos  
-      glBindVertexArray(vao[0]);
-      glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+          // Render vaos  
+          glBindVertexArray(vao[0]);
+          glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
-      for(int i = 0; i < 40; ++i){// 40
-          glBindVertexArray(vao[i+19]);
-          glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-      }
-      for(int i = 0; i < 15; ++i){// 15
-          glBindVertexArray(vao[i+59]);
-          glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-      }
-      for(int i = 0; i < 3; ++i){ // 3
-          glBindVertexArray(vao[i+2]);
-          glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
-      }
-      for(int i = 0; i < 14; ++i){// 14
-          glBindVertexArray(vao[i+5]);
-          glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-      }
+          for(int i = 0; i < 40; ++i){// 40
+              glBindVertexArray(vao[i+19]);
+              glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+          for(int i = 0; i < 15; ++i){// 15
+              glBindVertexArray(vao[i+59]);
+              glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+          for(int i = 0; i < 3; ++i){ // 3
+              glBindVertexArray(vao[i+2]);
+              glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
+          }
+          for(int i = 0; i < 14; ++i){// 14
+              glBindVertexArray(vao[i+5]);
+              glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
 
 
       // Unbind bufferx 

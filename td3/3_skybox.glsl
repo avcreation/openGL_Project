@@ -20,7 +20,8 @@ void main(void)
 	uv = VertexTexCoord;
 	normal = vec3(Object * vec4(VertexNormal, 1.0));; 
 	position = vec3(Object * vec4(VertexPosition, 1.0));
-	gl_Position = Projection * View * roatationX * Object * vec4(position, 1.0);
+	vec4 tmp = Projection * View * roatationX * Object * vec4(position, 1.0);
+	gl_Position = tmp.xyww;
 }
 
 #endif
