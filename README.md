@@ -1,4 +1,4 @@
-Advanced OpenGL IMAC3 exercises
+Imac3 OpenGl Project
 ===============================
 
 Build on Linux
