@@ -64,7 +64,7 @@ bool DoTheImportThing(const std::string& pFile, int *& obj_FacesIndices, float *
 
 void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *& obj_Normals, float *& obj_UVs, 
                       unsigned int &obj_NumFaces,  unsigned int &obj_NumVertices, GLuint & vao, GLuint * vbo, int startVBO,
-                      float translation[3]);
+                      float translation[3], float matRotation[16]);
 
 void init_gui_states(GUIStates & guiStates)
 {
@@ -449,9 +449,9 @@ int main( int argc, char **argv )
     float model3_translation1[3] = {0,-0.85,-1};
     float model3_translation2[3] = {5,-0.85,1.5};
     float model3_translation3[3] = {-4.5,-0.85,1};
-    BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[2], &vbo[0], 8, model3_translation1);
-    BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[3], &vbo[0], 12, model3_translation2);
-    BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[4], &vbo[0], 16, model3_translation3);
+    BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[2], &vbo[0], 8, model3_translation1, IdRotation);
+    BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[3], &vbo[0], 12, model3_translation2, IdRotation);
+    BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[4], &vbo[0], 16, model3_translation3, IdRotation);
 
 
     ////////////////////// Medium Model
@@ -471,20 +471,20 @@ int main( int argc, char **argv )
     float model2_translation12[3] = {-1.5,-1,0.25};
     float model2_translation13[3] = {-2.5,-1,-2};
     float model2_translation14[3] = {6.5,-1,3.5};
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[5], &vbo[0], 20, model2_translation1);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[6], &vbo[0], 24, model2_translation2);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[7], &vbo[0], 28, model2_translation3);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[8], &vbo[0], 32, model2_translation4);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[9], &vbo[0], 36, model2_translation5);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[10], &vbo[0], 40, model2_translation6);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[11], &vbo[0], 44, model2_translation7);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[12], &vbo[0], 48, model2_translation8);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[13], &vbo[0], 52, model2_translation9);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[14], &vbo[0], 56, model2_translation10);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[15], &vbo[0], 60, model2_translation11);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[16], &vbo[0], 64, model2_translation12);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[17], &vbo[0], 68, model2_translation13);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[18], &vbo[0], 72, model2_translation14);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[5], &vbo[0], 20, model2_translation1, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[6], &vbo[0], 24, model2_translation2, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[7], &vbo[0], 28, model2_translation3, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[8], &vbo[0], 32, model2_translation4, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[9], &vbo[0], 36, model2_translation5, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[10], &vbo[0], 40, model2_translation6, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[11], &vbo[0], 44, model2_translation7, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[12], &vbo[0], 48, model2_translation8, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[13], &vbo[0], 52, model2_translation9, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[14], &vbo[0], 56, model2_translation10, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[15], &vbo[0], 60, model2_translation11, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[16], &vbo[0], 64, model2_translation12, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[17], &vbo[0], 68, model2_translation13, IdRotation);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[18], &vbo[0], 72, model2_translation14, IdRotation);
 
     
     
@@ -531,52 +531,52 @@ int main( int argc, char **argv )
     float model1_translation38[3] = {-2.66,-1,-4.33};
     float model1_translation39[3] = {-5,-1,-4.33};
     float model1_translation40[3] = {-5.66,-1,-4.33};
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[19], &vbo[0], 76, model1_translation1);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[20], &vbo[0], 80, model1_translation2);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[21], &vbo[0], 84, model1_translation3);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[22], &vbo[0], 88, model1_translation4);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[23], &vbo[0], 92, model1_translation5);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[24], &vbo[0], 96, model1_translation6);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[25], &vbo[0], 100, model1_translation7);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[26], &vbo[0], 104, model1_translation8);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[27], &vbo[0], 108, model1_translation9);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[28], &vbo[0], 112, model1_translation10);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[29], &vbo[0], 116, model1_translation11);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[30], &vbo[0], 120, model1_translation12);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[31], &vbo[0], 124, model1_translation13);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[32], &vbo[0], 128, model1_translation14);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[33], &vbo[0], 132, model1_translation15);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[34], &vbo[0], 136, model1_translation16);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[35], &vbo[0], 140, model1_translation17);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[36], &vbo[0], 144, model1_translation18);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[37], &vbo[0], 148, model1_translation19);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[38], &vbo[0], 152, model1_translation20);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[39], &vbo[0], 156, model1_translation21);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[40], &vbo[0], 160, model1_translation22);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[41], &vbo[0], 164, model1_translation23);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[42], &vbo[0], 168, model1_translation24);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[43], &vbo[0], 172, model1_translation25);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[44], &vbo[0], 176, model1_translation26);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[45], &vbo[0], 180, model1_translation27);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[46], &vbo[0], 184, model1_translation28);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[47], &vbo[0], 188, model1_translation29);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[48], &vbo[0], 192, model1_translation30);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[49], &vbo[0], 196, model1_translation31);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[50], &vbo[0], 200, model1_translation32);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[51], &vbo[0], 204, model1_translation33);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[52], &vbo[0], 208, model1_translation34);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[53], &vbo[0], 212, model1_translation35);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[54], &vbo[0], 216, model1_translation36);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[55], &vbo[0], 220, model1_translation37);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[56], &vbo[0], 224, model1_translation38);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[57], &vbo[0], 228, model1_translation39);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[58], &vbo[0], 232, model1_translation40);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[19], &vbo[0], 76, model1_translation1, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[20], &vbo[0], 80, model1_translation2, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[21], &vbo[0], 84, model1_translation3, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[22], &vbo[0], 88, model1_translation4, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[23], &vbo[0], 92, model1_translation5, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[24], &vbo[0], 96, model1_translation6, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[25], &vbo[0], 100, model1_translation7, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[26], &vbo[0], 104, model1_translation8, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[27], &vbo[0], 108, model1_translation9, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[28], &vbo[0], 112, model1_translation10, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[29], &vbo[0], 116, model1_translation11, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[30], &vbo[0], 120, model1_translation12, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[31], &vbo[0], 124, model1_translation13, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[32], &vbo[0], 128, model1_translation14, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[33], &vbo[0], 132, model1_translation15, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[34], &vbo[0], 136, model1_translation16, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[35], &vbo[0], 140, model1_translation17, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[36], &vbo[0], 144, model1_translation18, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[37], &vbo[0], 148, model1_translation19, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[38], &vbo[0], 152, model1_translation20, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[39], &vbo[0], 156, model1_translation21, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[40], &vbo[0], 160, model1_translation22, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[41], &vbo[0], 164, model1_translation23, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[42], &vbo[0], 168, model1_translation24, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[43], &vbo[0], 172, model1_translation25, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[44], &vbo[0], 176, model1_translation26, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[45], &vbo[0], 180, model1_translation27, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[46], &vbo[0], 184, model1_translation28, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[47], &vbo[0], 188, model1_translation29, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[48], &vbo[0], 192, model1_translation30, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[49], &vbo[0], 196, model1_translation31, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[50], &vbo[0], 200, model1_translation32, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[51], &vbo[0], 204, model1_translation33, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[52], &vbo[0], 208, model1_translation34, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[53], &vbo[0], 212, model1_translation35, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[54], &vbo[0], 216, model1_translation36, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[55], &vbo[0], 220, model1_translation37, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[56], &vbo[0], 224, model1_translation38, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[57], &vbo[0], 228, model1_translation39, IdRotation);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[58], &vbo[0], 232, model1_translation40, IdRotation);
 
 
     ////////////////////// Lamps
     // nb:  15
     DoTheImportThing("obj/lampe_asura.obj", lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, 0, 20);
-    float lampe_translation1[3] = {0, 0.3, 1.5};
+    float lampe_translation1[3*15] = {0, 0.3, 1.5};
     float lampe_translation2[3] = {0, 0, 0.5};
     float lampe_translation3[3] = {-0.66, 0, 0.88};
     float lampe_translation4[3] = {-1, 0, 1.5};
@@ -591,21 +591,21 @@ int main( int argc, char **argv )
     float lampe_translation13[3]  = {0, 0, 3};
     float lampe_translation14[3]  = {0, 0, 3};
     float lampe_translation15[3]  = {-5, 0, -1.75};
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[59], &vbo[0], 236, lampe_translation1);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[60], &vbo[0], 240, lampe_translation2);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[61], &vbo[0], 244, lampe_translation3);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[62], &vbo[0], 248, lampe_translation4);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[63], &vbo[0], 252, lampe_translation5);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[64], &vbo[0], 256, lampe_translation6);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[65], &vbo[0], 260, lampe_translation7);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[66], &vbo[0], 264, lampe_translation8);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[67], &vbo[0], 268, lampe_translation9);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[68], &vbo[0], 272, lampe_translation10);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[69], &vbo[0], 276, lampe_translation11);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[70], &vbo[0], 280, lampe_translation12);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[71], &vbo[0], 284, lampe_translation13);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[72], &vbo[0], 288, lampe_translation14);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[73], &vbo[0], 292, lampe_translation15);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[59], &vbo[0], 236, lampe_translation1, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[60], &vbo[0], 240, lampe_translation2, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[61], &vbo[0], 244, lampe_translation3, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[62], &vbo[0], 248, lampe_translation4, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[63], &vbo[0], 252, lampe_translation5, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[64], &vbo[0], 256, lampe_translation6, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[65], &vbo[0], 260, lampe_translation7, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[66], &vbo[0], 264, lampe_translation8, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[67], &vbo[0], 268, lampe_translation9, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[68], &vbo[0], 272, lampe_translation10, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[69], &vbo[0], 276, lampe_translation11, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[70], &vbo[0], 280, lampe_translation12, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[71], &vbo[0], 284, lampe_translation13, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[72], &vbo[0], 288, lampe_translation14, IdRotation);
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[73], &vbo[0], 292, lampe_translation15, IdRotation);
 
 
      ////////////////////// Skybox
@@ -613,7 +613,7 @@ int main( int argc, char **argv )
     DoTheImportThing("obj/cube_reversed.obj", skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 0, 0.010);
     float skybox_translation[3] = {00., 0, 0.};
     BindingInstanceLike(skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 
-                        vao[74], &vbo[0], 296, skybox_translation);
+                        vao[74], &vbo[0], 296, skybox_translation, IdRotation);
 
    
 
@@ -1117,14 +1117,13 @@ bool DoTheImportThing(const std::string& pFile, int *& obj_FacesIndices, float *
 
 void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *& obj_Normals, float *& obj_UVs, 
                       unsigned int &obj_NumFaces,  unsigned int &obj_NumVertices, GLuint & vao, GLuint * vbo, int startVBO,
-                      float translation[3]){
+                      float translation[3], float matRotation[16]){
     
-    float matRotation[16] = {
-        cos(0), 0, sin(0), 0,
-            0,    1,   0,    0,
-        -sin(0), 0, cos(0), 0,
-            0,    0,   0,    1
-    };
+    
+
+    float InvmatRotation[16];
+    mat4fInverse(matRotation, InvmatRotation);
+
     for(size_t j = 0 ; j < obj_NumVertices ; ++j) {
         float tmp[3];
         const float vert[3] = {obj_Vertices[j*3], obj_Vertices[j*3+1], obj_Vertices[j*3+2]};
@@ -1157,8 +1156,19 @@ void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *
     glBufferData(GL_ARRAY_BUFFER, sizeof(obj_UVs)*obj_NumVertices*3, obj_UVs, GL_STATIC_DRAW);
 
     for(size_t j = 0 ; j < obj_NumVertices ; ++j) {
+
+
         obj_Vertices[j*3]   -= translation[0];
         obj_Vertices[j*3+1] -= translation[1];
         obj_Vertices[j*3+2] -= translation[2];
+
+
+        float tmp[3];
+        const float vert[3] = {obj_Vertices[j*3], obj_Vertices[j*3+1], obj_Vertices[j*3+2]};
+        mat4fMulV3(InvmatRotation, vert , tmp);
+
+        obj_Vertices[j*3]   = tmp[0];
+        obj_Vertices[j*3+1] = tmp[1];
+        obj_Vertices[j*3+2] = tmp[2];
     }
 }
