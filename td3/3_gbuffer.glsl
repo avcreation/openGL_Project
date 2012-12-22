@@ -2,8 +2,8 @@
 uniform mat4 Projection;
 uniform mat4 View;
 uniform mat4 Object;
-//uniform mat4 Rotation;
 uniform float Time;
+uniform vec3 translation;
 
 in vec3 VertexPosition;
 in vec3 VertexNormal;
@@ -15,14 +15,15 @@ out vec3 position;
 
 void main(void)
 {	
-	mat4 roatationTime = mat4(cos(Time), 0, sin(Time), 0,
-							    0,    1,   0,    0,
-							 -sin(Time), 0, cos(Time), 0,
-							    0,    0,   0,    1);
+	mat3 roatationTime = mat3(cos(Time), 0, sin(Time),
+							    0,    1,   0,
+							 -sin(Time), 0, cos(Time));
 	uv = VertexTexCoord;
 	normal = vec3(Object * vec4(VertexNormal, 1.0));
-	position = vec3(Object * vec4(VertexPosition, 1.0));
+	vec3 pos = VertexPosition*roatationTime + translation;
+	position = vec3(Object * vec4(pos, 1.0));
 	position.y += 0.1*sin(Time); 
+	
 	gl_Position = Projection * View * Object * vec4(position, 1.0);
 }
 

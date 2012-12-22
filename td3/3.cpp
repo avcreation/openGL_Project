@@ -63,8 +63,7 @@ bool DoTheImportThing(const std::string& pFile, int *& obj_FacesIndices, float *
                       unsigned int &obj_NumFaces,  unsigned int &obj_NumVertices, int numMesh, float proportion);
 
 void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *& obj_Normals, float *& obj_UVs, 
-                      unsigned int &obj_NumFaces,  unsigned int &obj_NumVertices, GLuint & vao, GLuint * vbo, int startVBO,
-                      float translation[3], float matRotation[16]);
+                      unsigned int &obj_NumFaces,  unsigned int &obj_NumVertices, GLuint & vao, GLuint * vbo, int startVBO);
 
 void init_gui_states(GUIStates & guiStates)
 {
@@ -170,7 +169,7 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     fprintf(stderr, "Spec %dx%d:%d\n", x, y, comp);
     
-    unsigned char * box = stbi_load("textures/testskyboxUV2.bmp", &x, &y, &comp, 3);
+    unsigned char * box = stbi_load("textures/testskyboxUV3.bmp", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, textures[4]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, box);
@@ -237,6 +236,7 @@ int main( int argc, char **argv )
     GLuint gbuffer_timeLocation = glGetUniformLocation(gbuffer_shader.program, "Time");
     GLuint gbuffer_diffuseLocation = glGetUniformLocation(gbuffer_shader.program, "Diffuse");
     GLuint gbuffer_specLocation = glGetUniformLocation(gbuffer_shader.program, "Spec");
+    GLuint gbuffer_translationLocation = glGetUniformLocation(gbuffer_shader.program, "translation");
 
 
     // SKYBOX
@@ -259,33 +259,32 @@ int main( int argc, char **argv )
 
     // Load light accumulation shader
     ShaderGLSL laccum_shader;
-    status = load_shader_from_file(laccum_shader, "td3/3_laccum_spot.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
+    status = load_shader_from_file(laccum_shader, "td3/3_laccum_spot_corrected.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
     if ( status == -1 )
     {
-        fprintf(stderr, "Error on loading  td3/3_laccum_spot.glsl\n");
+        fprintf(stderr, "Error on loading  td3/3_laccum_spot_corrected.glsl\n");
         exit( EXIT_FAILURE );
     }
-    
     // Compute locations for light accumulation shader
     GLuint laccum_projectionLocation = glGetUniformLocation(laccum_shader.program, "Projection");
     GLuint laccum_materialLocation = glGetUniformLocation(laccum_shader.program, "Material");
     GLuint laccum_normalLocation = glGetUniformLocation(laccum_shader.program, "Normal");
     GLuint laccum_depthLocation = glGetUniformLocation(laccum_shader.program, "Depth");
-    GLuint laccum_shadowMaplLocation = glGetUniformLocation(laccum_shader.program, "ShadowMap");
+    GLuint laccum_shadowLocation = glGetUniformLocation(laccum_shader.program, "Shadow");
     GLuint laccum_inverseViewProjectionLocation = glGetUniformLocation(laccum_shader.program, "InverseViewProjection");
+    GLuint laccum_projectionLightLocation = glGetUniformLocation(laccum_shader.program, "ProjectionLight");
     GLuint laccum_cameraPositionLocation = glGetUniformLocation(laccum_shader.program, "CameraPosition");
     GLuint laccum_lightPositionLocation = glGetUniformLocation(laccum_shader.program, "LightPosition");
     GLuint laccum_lightDirectionLocation = glGetUniformLocation(laccum_shader.program, "LightDirection");
     GLuint laccum_lightColorLocation = glGetUniformLocation(laccum_shader.program, "LightColor");
     GLuint laccum_lightIntensityLocation = glGetUniformLocation(laccum_shader.program, "LightIntensity");
-    GLuint laccum_ProjectionLightLocationBias = glGetUniformLocation(laccum_shader.program, "ProjectionLightBias");
-    GLuint laccum_BiasLocation = glGetUniformLocation(laccum_shader.program, "Bias");
-    GLuint laccum_SamplesLocation = glGetUniformLocation(laccum_shader.program, "Samples");
-    GLuint laccum_SpreadLocation = glGetUniformLocation(laccum_shader.program, "Spread");
+    GLuint laccum_shadowBiasLocation = glGetUniformLocation(laccum_shader.program, "ShadowBias");
+    GLuint laccum_shadowSamples = glGetUniformLocation(laccum_shader.program, "ShadowSamples");
+    GLuint laccum_shadowSampleSpread = glGetUniformLocation(laccum_shader.program, "ShadowSampleSpread");
 
-    float shadowBias = 0.004f;
-    float Samples = 1.f;
-    float Spread = 400.f;
+     float shadowBias = 0.001f;
+    float shadowSamples = 6.0;
+    float shadowSampleSpread = 1000.0;
     
     // Load shadow generation shader
     ShaderGLSL shadowgen_shader;
@@ -301,6 +300,7 @@ int main( int argc, char **argv )
     GLuint shadowgen_viewLocation = glGetUniformLocation(shadowgen_shader.program, "View");
     GLuint shadowgen_objectLocation = glGetUniformLocation(shadowgen_shader.program, "Object");
     GLuint shadowgen_timeLocation = glGetUniformLocation(shadowgen_shader.program, "Time");
+    GLuint shadowgen_translationLocation = glGetUniformLocation(shadowgen_shader.program, "translation");
 
 
     // --------------------------------------------------------------------
@@ -361,7 +361,7 @@ int main( int argc, char **argv )
     int   plane_triangleCount = 2;
     int   plane_triangleList[] = {0, 1, 2, 2, 1, 3}; 
     float plane_uvs[] = {0.f, 0.f, 0.f, 100.f, 100.f, 0.f, 100.f, 100.f};
-    float plane_vertices[] = {-50.0, -1.0, 50.0, 50.0, -1.0, 50.0, -50.0, -1.0, -50.0, 50.0, -1.0, -50.0};
+    float plane_vertices[] = {-10.0, -1.0, 10.0, 10.0, -1.0, 10.0, -10.0, -1.0, -10.0, 10.0, -1.0, -10.0};
     float plane_normals[] = {0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
     
     // Init a quad
@@ -373,9 +373,9 @@ int main( int argc, char **argv )
 
    
 /////////////// ----------------------------- Init Camera -------------------- ////////////////////
-    float center[4] = {0.21986, 3.55802, 1.11058, 0};
-    float dist =  16.0695;
-    //camera.init(center, dist, 0.02501, 1.585);
+    float center[4] = {0.399295, -0.634027, 0.000186918, 0};
+    float dist = 1.91782;
+    camera.init(center, dist, 1.57, 1.57);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     
@@ -449,9 +449,10 @@ int main( int argc, char **argv )
     float model3_translation1[3] = {0,-0.85,-1};
     float model3_translation2[3] = {5,-0.85,1.5};
     float model3_translation3[3] = {-4.5,-0.85,1};
-    BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[2], &vbo[0], 8, model3_translation1, IdRotation);
-    BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[3], &vbo[0], 12, model3_translation2, IdRotation);
-    BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[4], &vbo[0], 16, model3_translation3, IdRotation);
+    float * model3_translation[3] = {model3_translation1, model3_translation2, model3_translation3};
+    int i = 2, j = 8;
+    for(i = 2, j = 8; i < 5; i++, j = j+4)
+        BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[i], &vbo[0], j);
 
 
     ////////////////////// Medium Model
@@ -471,21 +472,10 @@ int main( int argc, char **argv )
     float model2_translation12[3] = {-1.5,-1,0.25};
     float model2_translation13[3] = {-2.5,-1,-2};
     float model2_translation14[3] = {6.5,-1,3.5};
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[5], &vbo[0], 20, model2_translation1, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[6], &vbo[0], 24, model2_translation2, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[7], &vbo[0], 28, model2_translation3, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[8], &vbo[0], 32, model2_translation4, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[9], &vbo[0], 36, model2_translation5, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[10], &vbo[0], 40, model2_translation6, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[11], &vbo[0], 44, model2_translation7, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[12], &vbo[0], 48, model2_translation8, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[13], &vbo[0], 52, model2_translation9, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[14], &vbo[0], 56, model2_translation10, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[15], &vbo[0], 60, model2_translation11, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[16], &vbo[0], 64, model2_translation12, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[17], &vbo[0], 68, model2_translation13, IdRotation);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[18], &vbo[0], 72, model2_translation14, IdRotation);
-
+    float * model2_translation[14] = {model2_translation1,model2_translation2,model2_translation3,model2_translation4,model2_translation5,model2_translation6,model2_translation7,model2_translation8,model2_translation9,model2_translation10,model2_translation11,model2_translation12,model2_translation13,model2_translation14};
+    for(i = 5, j = 20; i < 19; i++, j = j+4)
+        BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[i], &vbo[0], j);
+  
     
     
     ////////////////////// Little Model
@@ -531,46 +521,14 @@ int main( int argc, char **argv )
     float model1_translation38[3] = {-2.66,-1,-4.33};
     float model1_translation39[3] = {-5,-1,-4.33};
     float model1_translation40[3] = {-5.66,-1,-4.33};
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[19], &vbo[0], 76, model1_translation1, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[20], &vbo[0], 80, model1_translation2, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[21], &vbo[0], 84, model1_translation3, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[22], &vbo[0], 88, model1_translation4, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[23], &vbo[0], 92, model1_translation5, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[24], &vbo[0], 96, model1_translation6, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[25], &vbo[0], 100, model1_translation7, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[26], &vbo[0], 104, model1_translation8, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[27], &vbo[0], 108, model1_translation9, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[28], &vbo[0], 112, model1_translation10, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[29], &vbo[0], 116, model1_translation11, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[30], &vbo[0], 120, model1_translation12, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[31], &vbo[0], 124, model1_translation13, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[32], &vbo[0], 128, model1_translation14, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[33], &vbo[0], 132, model1_translation15, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[34], &vbo[0], 136, model1_translation16, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[35], &vbo[0], 140, model1_translation17, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[36], &vbo[0], 144, model1_translation18, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[37], &vbo[0], 148, model1_translation19, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[38], &vbo[0], 152, model1_translation20, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[39], &vbo[0], 156, model1_translation21, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[40], &vbo[0], 160, model1_translation22, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[41], &vbo[0], 164, model1_translation23, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[42], &vbo[0], 168, model1_translation24, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[43], &vbo[0], 172, model1_translation25, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[44], &vbo[0], 176, model1_translation26, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[45], &vbo[0], 180, model1_translation27, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[46], &vbo[0], 184, model1_translation28, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[47], &vbo[0], 188, model1_translation29, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[48], &vbo[0], 192, model1_translation30, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[49], &vbo[0], 196, model1_translation31, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[50], &vbo[0], 200, model1_translation32, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[51], &vbo[0], 204, model1_translation33, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[52], &vbo[0], 208, model1_translation34, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[53], &vbo[0], 212, model1_translation35, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[54], &vbo[0], 216, model1_translation36, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[55], &vbo[0], 220, model1_translation37, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[56], &vbo[0], 224, model1_translation38, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[57], &vbo[0], 228, model1_translation39, IdRotation);
-    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[58], &vbo[0], 232, model1_translation40, IdRotation);
+    float * model1_translation[40] = {model1_translation1,model1_translation2,model1_translation3,model1_translation4,model1_translation5,model1_translation6,model1_translation7,model1_translation8,model1_translation9,model1_translation10,
+        model1_translation11,model1_translation12,model1_translation13,model1_translation14,model1_translation15,model1_translation16,model1_translation17,model1_translation18,model1_translation19,model1_translation20,
+        model1_translation21,model1_translation22,model1_translation23,model1_translation24,model1_translation25,model1_translation26,model1_translation27,model1_translation28,model1_translation29,model1_translation30,
+        model1_translation31,model1_translation32,model1_translation33,model1_translation34,model1_translation35,model1_translation36,model1_translation37,model1_translation38,model1_translation39,model1_translation40};
+   
+    for(i = 19, j = 76; i < 59; i++, j = j+4)
+        BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[i], &vbo[0], j);
+   
 
 
     ////////////////////// Lamps
@@ -591,29 +549,19 @@ int main( int argc, char **argv )
     float lampe_translation13[3]  = {0, 0, 3};
     float lampe_translation14[3]  = {0, 0, 3};
     float lampe_translation15[3]  = {-5, 0, -1.75};
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[59], &vbo[0], 236, lampe_translation1, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[60], &vbo[0], 240, lampe_translation2, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[61], &vbo[0], 244, lampe_translation3, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[62], &vbo[0], 248, lampe_translation4, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[63], &vbo[0], 252, lampe_translation5, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[64], &vbo[0], 256, lampe_translation6, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[65], &vbo[0], 260, lampe_translation7, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[66], &vbo[0], 264, lampe_translation8, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[67], &vbo[0], 268, lampe_translation9, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[68], &vbo[0], 272, lampe_translation10, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[69], &vbo[0], 276, lampe_translation11, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[70], &vbo[0], 280, lampe_translation12, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[71], &vbo[0], 284, lampe_translation13, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[72], &vbo[0], 288, lampe_translation14, IdRotation);
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[73], &vbo[0], 292, lampe_translation15, IdRotation);
+    float * lampe_translation[15] = {lampe_translation1,lampe_translation2,lampe_translation3,lampe_translation4,lampe_translation5,lampe_translation6,lampe_translation7,lampe_translation8,lampe_translation9,lampe_translation10,lampe_translation11,lampe_translation12,lampe_translation13,lampe_translation14,lampe_translation15};
+    
+    for(i = 59, j = 236; i < 74; i++, j = j+4)
+        BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[i], &vbo[0], j);
+    
 
 
      ////////////////////// Skybox
     // nb:  
-    DoTheImportThing("obj/cube_reversed.obj", skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 0, 0.010);
+    DoTheImportThing("obj/cube_reversed.obj", skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 0, 0.5);
     float skybox_translation[3] = {00., 0, 0.};
     BindingInstanceLike(skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 
-                        vao[74], &vbo[0], 296, skybox_translation, IdRotation);
+                        vao[74], &vbo[0], 296);
 
    
 
@@ -823,6 +771,7 @@ int main( int argc, char **argv )
           // Render vaos  
           glBindVertexArray(vao[0]);
           glUniform1f(gbuffer_timeLocation, 0);
+          glUniform3f(gbuffer_translationLocation, IdTranslation[0], IdTranslation[1], IdTranslation[2]);
           glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
           glUniform1i(gbuffer_diffuseLocation,0);
@@ -835,23 +784,26 @@ int main( int argc, char **argv )
 
           for(int i = 0; i < 40; ++i){// 40
               glBindVertexArray(vao[i+19]);
+              glUniform3f(gbuffer_translationLocation, model1_translation[i][0], model1_translation[i][1], model1_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
 
-          glUniform1f(gbuffer_timeLocation, t);
-          for(int i = 0; i < 15; ++i){// 15
-              glBindVertexArray(vao[i+59]);
-              glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-          }
+          // glUniform1f(gbuffer_timeLocation, t);
+          // for(int i = 0; i < 15; ++i){// 15
+          //     glBindVertexArray(vao[i+59]);
+          //     glUniform3f(gbuffer_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
+          //     glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          // }
 
           glUniform1i(gbuffer_diffuseLocation, 7);
            // Bind textures
           glActiveTexture(GL_TEXTURE7);
           glBindTexture(GL_TEXTURE_2D, textures[7]);
 
-          glUniform1f(gbuffer_timeLocation, 0);
+          //glUniform1f(gbuffer_timeLocation, 0);
           for(int i = 0; i < 3; ++i){ // 3
               glBindVertexArray(vao[i+2]);
+              glUniform3f(gbuffer_translationLocation, model3_translation[i][0], model3_translation[i][1], model3_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
           }
 
@@ -862,6 +814,7 @@ int main( int argc, char **argv )
 
           for(int i = 0; i < 14; ++i){// 14
               glBindVertexArray(vao[i+5]);
+              glUniform3f(gbuffer_translationLocation, model2_translation[i][0], model2_translation[i][1], model2_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
          
@@ -870,7 +823,8 @@ int main( int argc, char **argv )
 
         
           // Compute light positions
-          float lightPosition[3] = { -4.0, 500.0, -4.0};
+          //float lightPosition[3] = { -4.0, 500.0, -4.0};
+          float lightPosition[3] = { 5.0, 10.0, 5.0};
           // float lightPosition[3] = { sin(t/10) * 5.0, 50.0, cos(t/10) * 5.0};
           float lightTarget[3] = { 0.0, 0.0, 0.0};
           float lightDirection[3];
@@ -912,22 +866,30 @@ int main( int argc, char **argv )
 
           // Render vaos  
           glBindVertexArray(vao[0]);
+          glUniform1f(shadowgen_timeLocation, 0);
+          glUniform3f(shadowgen_translationLocation, IdTranslation[0], IdTranslation[1], IdTranslation[2]);
           glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
           for(int i = 0; i < 40; ++i){// 40
               glBindVertexArray(vao[i+19]);
+              glUniform3f(shadowgen_translationLocation, model1_translation[i][0], model1_translation[i][1], model1_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
+          glUniform1f(shadowgen_timeLocation, t);
           for(int i = 0; i < 15; ++i){// 15
               glBindVertexArray(vao[i+59]);
+              glUniform3f(shadowgen_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
               glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
+          glUniform1f(shadowgen_timeLocation, 0);
           for(int i = 0; i < 3; ++i){ // 3
               glBindVertexArray(vao[i+2]);
+              glUniform3f(shadowgen_translationLocation, model3_translation[i][0], model3_translation[i][1], model3_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
           }
           for(int i = 0; i < 14; ++i){// 14
               glBindVertexArray(vao[i+5]);
+              glUniform3f(shadowgen_translationLocation, model2_translation[i][0], model2_translation[i][1], model2_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
 
@@ -942,89 +904,99 @@ int main( int argc, char **argv )
       glViewport( 0, 0, width, height);
 
       // Bind laccum shader
-      glUseProgram(laccum_shader.program);
-      // Upload uniforms
-      glUniformMatrix4fv(laccum_projectionLocation, 1, 0, orthoProj);
-      glUniform1i(laccum_materialLocation, 0);
-      glUniform1i(laccum_normalLocation, 1);
-      glUniform1i(laccum_depthLocation, 2);
-      glUniform1i(laccum_shadowMaplLocation, 3);
-      glUniform3fv(laccum_cameraPositionLocation, 1, cameraPosition);
-      glUniformMatrix4fv(laccum_inverseViewProjectionLocation, 1, 0, iviewProjection);
-      glUniformMatrix4fv(laccum_ProjectionLightLocationBias, 1, 0, projectionLightBias);
-      
-      
+        glUseProgram(laccum_shader.program);
+        // Upload uniforms
+        glUniformMatrix4fv(laccum_projectionLocation, 1, 0, orthoProj);
+        glUniform1i(laccum_materialLocation, 0);
+        glUniform1i(laccum_normalLocation, 1);
+        glUniform1i(laccum_depthLocation, 2);
+        glUniform1i(laccum_shadowLocation, 3);
+        glUniform3fv(laccum_cameraPositionLocation, 1, cameraPosition);
+        glUniformMatrix4fv(laccum_inverseViewProjectionLocation, 1, 0, iviewProjection);
+        glUniformMatrix4fv(laccum_projectionLightLocation, 1, 0, projectionLightBias);
+        glUniform1f(laccum_shadowBiasLocation, shadowBias);
+        glUniform1f(laccum_shadowSamples, shadowSamples);
+        glUniform1f(laccum_shadowSampleSpread, shadowSampleSpread);
 
-      // Bind color to unit 0
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[0]);        
-      // Bind normal to unit 1
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[1]);    
-      // Bind depth to unit 2
-      glActiveTexture(GL_TEXTURE2);
-      glBindTexture(GL_TEXTURE_2D, gbuffer.depthTexId);
-      // Bind normal to unit 1
-      glActiveTexture(GL_TEXTURE3);
-      glBindTexture(GL_TEXTURE_2D,shadowBuffer.depthTexId);        
+        // Bind color to unit 0
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[0]);        
+        // Bind normal to unit 1
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[1]);    
+        // Bind depth to unit 2
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, gbuffer.depthTexId);        
+        // Bind shadow map to unit 3
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, shadowBuffer.depthTexId);        
 
-      // Blit above the rest
-      glDisable(GL_DEPTH_TEST);
+        // Blit above the rest
+        glDisable(GL_DEPTH_TEST);
 
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_ONE, GL_ONE);
+        
+        glBlendFunc(GL_ONE, GL_ONE);
 
-      // Light uniforms
-      glUniform3fv(laccum_lightDirectionLocation, 1, lightDirection);
-      glUniform3fv(laccum_lightPositionLocation, 1, lightPosition);
-      glUniform3fv(laccum_lightColorLocation, 1, lightColor);
-      glUniform1f(laccum_lightIntensityLocation, lightIntensity);
-      glUniform1f(laccum_BiasLocation, shadowBias);
-      glUniform1f(laccum_SamplesLocation, Samples);
-      glUniform1f(laccum_SpreadLocation, Spread);
+
+        // Light uniforms
+        glUniform3fv(laccum_lightDirectionLocation, 1, lightDirection);
+        glUniform3fv(laccum_lightPositionLocation, 1, lightPosition);
+        glUniform3fv(laccum_lightColorLocation, 1, lightColor);
+        glUniform1f(laccum_lightIntensityLocation, lightIntensity);
 
       // Draw quad
       glBindVertexArray(vao[1]);
       glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
-        glDisable(GL_BLEND);
-      // // Draw UI
-      // glActiveTexture(GL_TEXTURE0);
-      // glEnable(GL_BLEND);
-      // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      // glViewport(0, 0, width, height);
-      // glDisable(GL_DEPTH_TEST);
-      // glMatrixMode(GL_PROJECTION);
-      // glLoadIdentity();
-      // float orthoUI[16];
-      // ortho(0, width, 0, height, 0.0, 1.0, orthoUI);
-      // glLoadMatrixf(orthoUI);
-      // glMatrixMode(GL_MODELVIEW);
-      // glLoadIdentity();
-      // glUseProgram(0);
+      
+      
+      glUseProgram(gbuffer_shader.program);
+      glUniform1f(gbuffer_timeLocation, t);
+      for(int i = 0; i < 15; ++i){// 15
+          glBindVertexArray(vao[i+59]);
+          glUniform3f(gbuffer_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
+          glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+      }
 
-      // unsigned char mbut = 0;
-      // int mscroll = 0;
-      // int mousex; int mousey;
-      // glfwGetMousePos(&mousex, &mousey);
-      // mousey = height - mousey;
+      glDisable(GL_BLEND);
 
-      // if( leftButton == GLFW_PRESS )
-      //     mbut |= IMGUI_MBUT_LEFT;
+      // Draw UI
+      glActiveTexture(GL_TEXTURE0);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glViewport(0, 0, width, height);
+      glDisable(GL_DEPTH_TEST);
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      float orthoUI[16];
+      ortho(0, width, 0, height, 0.0, 1.0, orthoUI);
+      glLoadMatrixf(orthoUI);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+      glUseProgram(0);
+
+      unsigned char mbut = 0;
+      int mscroll = 0;
+      int mousex; int mousey;
+      glfwGetMousePos(&mousex, &mousey);
+      mousey = height - mousey;
+
+      if( leftButton == GLFW_PRESS )
+          mbut |= IMGUI_MBUT_LEFT;
   
-      // imguiBeginFrame(mousex, mousey, mbut, mscroll);
-      // const char msg[] = "UI Test";
-      // int logScroll = 0;
-      // imguiBeginScrollArea("Settings", width - 210, height - 310, 200, 300, &logScroll);
-      // imguiSlider("bias", &shadowBias, 0.0000, 0.1, 0.0005);
-      // imguiSlider("samples", &Samples, 1, 16, 1);
-      // imguiSlider("spread", &Spread, 1, 1000, 1);
-      // imguiEndScrollArea();
-      // imguiEndFrame();
+      imguiBeginFrame(mousex, mousey, mbut, mscroll);
+      const char msg[] = "UI Test";
+      int logScroll = 0;
+      imguiBeginScrollArea("Settings", width - 210, height - 310, 200, 300, &logScroll);
+      imguiSlider("bias", &shadowBias, 0.0000, 0.1, 0.0005);
+      imguiSlider("samples", &shadowSamples, 1, 16, 1);
+      imguiSlider("spread", &shadowSampleSpread, 1, 1000, 1);
+      imguiEndScrollArea();
+      imguiEndFrame();
 
 
-      // imguiRenderGLDraw(); 
-      // glDisable(GL_BLEND);
+      imguiRenderGLDraw(); 
+      glDisable(GL_BLEND);
 
       // Check for errors
       GLenum err = glGetError();
@@ -1116,23 +1088,9 @@ bool DoTheImportThing(const std::string& pFile, int *& obj_FacesIndices, float *
 
 
 void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *& obj_Normals, float *& obj_UVs, 
-                      unsigned int &obj_NumFaces,  unsigned int &obj_NumVertices, GLuint & vao, GLuint * vbo, int startVBO,
-                      float translation[3], float matRotation[16]){
+                      unsigned int &obj_NumFaces,  unsigned int &obj_NumVertices, GLuint & vao, GLuint * vbo, int startVBO){
     
     
-
-    float InvmatRotation[16];
-    mat4fInverse(matRotation, InvmatRotation);
-
-    for(size_t j = 0 ; j < obj_NumVertices ; ++j) {
-        float tmp[3];
-        const float vert[3] = {obj_Vertices[j*3], obj_Vertices[j*3+1], obj_Vertices[j*3+2]};
-        mat4fMulV3(matRotation, vert , tmp);
-        
-        obj_Vertices[j*3] = tmp[0]   += translation[0];
-        obj_Vertices[j*3 + 1] = tmp[1] += translation[1];
-        obj_Vertices[j*3 + 2] = tmp[2] += translation[2];
-    }
 
      // Big Model
     glBindVertexArray(vao);
@@ -1154,21 +1112,4 @@ void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
     glBufferData(GL_ARRAY_BUFFER, sizeof(obj_UVs)*obj_NumVertices*3, obj_UVs, GL_STATIC_DRAW);
-
-    for(size_t j = 0 ; j < obj_NumVertices ; ++j) {
-
-
-        obj_Vertices[j*3]   -= translation[0];
-        obj_Vertices[j*3+1] -= translation[1];
-        obj_Vertices[j*3+2] -= translation[2];
-
-
-        float tmp[3];
-        const float vert[3] = {obj_Vertices[j*3], obj_Vertices[j*3+1], obj_Vertices[j*3+2]};
-        mat4fMulV3(InvmatRotation, vert , tmp);
-
-        obj_Vertices[j*3]   = tmp[0];
-        obj_Vertices[j*3+1] = tmp[1];
-        obj_Vertices[j*3+2] = tmp[2];
-    }
 }
