@@ -35,6 +35,12 @@ uniform float ShadowBias;
 uniform float ShadowSamples;
 uniform float ShadowSampleSpread;
 
+uniform vec3  LampLightPosition;
+uniform vec3  LampLightDirection;
+uniform vec3  LampLightColor;
+uniform float LampLightIntensity;
+uniform int   NombreLampe;
+
 vec2 poissonDisk[16] = vec2[](
         vec2( -0.94201624, -0.39906216 ),
         vec2( 0.94558609, -0.76890725 ),
@@ -69,9 +75,40 @@ vec3 spotLight(in vec3 lcolor, in float intensity, in vec3 ldir, in vec3 lpos, i
 	float d = distance(l, fpos);
 	vec3 color = vec3(0.0, 0.0, 0.0);
 	if (cosTs > cosTp) 
-		color = pow(cosTs, 30.0) * lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
-	color = pow(cosTs, 30.0) * lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
+		color = pow(cosTs, 0.0) * lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
+	color = pow(cosTs, 0.0) * lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
 
+	return color;
+}
+
+vec3 pointLight(in vec3 lcolor, in float intensity, in vec3 lpos, in vec3 n, in vec3 fpos, vec3 diffuse, float spec, vec3 cpos)
+{
+	vec3 l =  lpos - fpos;
+	vec3 v = fpos - cpos;
+	vec3 h = normalize(l-v);
+	float n_dot_l = clamp(dot(n, l), 0, 1.0);
+	float n_dot_h = clamp(dot(n, h), 0, 1.0);
+	float d = distance(l, fpos);
+	float att = clamp(  1.0 /  ( 1 + 0.1 * (d*d)), 0.0, 1.0);
+	vec3 color = lcolor * intensity * att * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
+	return color;
+}
+
+vec3 directionalLight(in vec3 lcolor, in float intensity, in vec3 ldir, in vec3 n, in vec3 fpos, vec3 diffuse, float spec, vec3 cpos)
+{
+	vec3 l =  ldir;
+	vec3 v = fpos - cpos;
+	vec3 h = normalize(l-v);
+	float n_dot_l = clamp(dot(n, -l), 0, 1.0);
+	float n_dot_h = clamp(dot(n, h), 0, 1.0);
+	float d = distance(l, fpos);
+	float thetaP =  radians(30.0);
+	float cosTs = dot( normalize(-l), normalize(ldir) ); 
+	float cosTp = cos(thetaP);   
+	vec3 color = vec3(0.0, 0.0, 0.0);
+	if (cosTs > cosTp) 
+		color = pow(cosTs, 30.0) * lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
+	else color = lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
 	return color;
 }
 
@@ -99,7 +136,12 @@ void main(void)
 
 	vec3 n = normalize(normal);
 
-	vec3 cspotlight1 = spotLight(LightColor, LightIntensity, LightDirection, LightPosition, n, position, diffuse, spec, CameraPosition );
+	vec3 cspotlight1 = directionalLight(LightColor, LightIntensity, LightDirection, n, position, diffuse, spec, CameraPosition );
+
+	vec3 lampLight = vec3(0,0,0);
+	for(int i = 0 ; i < NombreLampe ; ++i) {
+		lampLight += pointLight(LampLightColor, LampLightIntensity, LampLightPosition, n, position, diffuse, spec, CameraPosition );
+	}
 
 	if (wlightSpacePosition.w > 0.0  && lightSpacePosition.x > 0.0 && lightSpacePosition.x < 1.0 && lightSpacePosition.y > 0.0 && lightSpacePosition.y < 1.0 )
 	{
@@ -114,12 +156,12 @@ void main(void)
 			    visibility-=visibilityOffset;
 			}
 		}
-		Color = vec4(cspotlight1 * visibility, 1.0);
+		Color = vec4((cspotlight1+lampLight) * visibility, 1.0);
 
 	}
 	else
 	{
-		Color = vec4(cspotlight1, 1.0);
+		Color = vec4(cspotlight1+lampLight, 1.0);
 	}
 	/*
 	float shadowDepth = texture(Shadow, lightSpacePosition.xy).r;

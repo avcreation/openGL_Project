@@ -69,8 +69,8 @@ vec3 spotLight(in vec3 lcolor, in float intensity, in vec3 ldir, in vec3 lpos, i
 	float d = distance(l, fpos);
 	vec3 color = vec3(0.0, 0.0, 0.0);
 	if (cosTs > cosTp) 
-		color = pow(cosTs, 30.0) * lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
-	color = pow(cosTs, 30.0) * lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
+		color = pow(cosTs, 10.0) * lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
+	color = pow(cosTs, 10.0) * lcolor * intensity * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
 
 	return color;
 }

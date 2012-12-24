@@ -19,7 +19,7 @@ void main(void)
 							    0,    1,   0,
 							 -sin(Time), 0, cos(Time));
 	uv = VertexTexCoord;
-	normal = vec3(Object * vec4(VertexNormal, 1.0));
+	normal = vec3(Object * vec4(VertexNormal*roatationTime, 1.0));
 	vec3 pos = VertexPosition*roatationTime + translation;
 	position = vec3(Object * vec4(pos, 1.0));
 	position.y += 0.1*sin(Time); 

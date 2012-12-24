@@ -145,8 +145,8 @@ int main( int argc, char **argv )
 
     // Load images and upload textures
 
-    GLuint textures[9];
-    glGenTextures(9, textures);
+    GLuint textures[11];
+    glGenTextures(11, textures);
     int x;
     int y;
     int comp; 
@@ -169,7 +169,7 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     fprintf(stderr, "Spec %dx%d:%d\n", x, y, comp);
     
-    unsigned char * box = stbi_load("textures/testskyboxUV3.bmp", &x, &y, &comp, 3);
+    unsigned char * box = stbi_load("textures/skybox.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, textures[4]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, box);
@@ -197,7 +197,7 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "grass %dx%d:%d\n", x, y, comp);
+    fprintf(stderr, "specgrass %dx%d:%d\n", x, y, comp);
 
     unsigned char * diffuse2 = stbi_load("textures/gigul.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE7);
@@ -207,7 +207,7 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "grass %dx%d:%d\n", x, y, comp);
+    fprintf(stderr, "gigul %dx%d:%d\n", x, y, comp);
 
     unsigned char * diffuse3 = stbi_load("textures/jeflum.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE8);
@@ -217,7 +217,28 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "grass %dx%d:%d\n", x, y, comp);
+    fprintf(stderr, "jeflum %dx%d:%d\n", x, y, comp);
+
+
+    unsigned char * transp = stbi_load("textures/trans.tga", &x, &y, &comp, 3);
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D, textures[9]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE,  transp);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    fprintf(stderr, "transp %dx%d:%d\n", x, y, comp);
+
+    unsigned char * transpec = stbi_load("textures/transSpec.tga", &x, &y, &comp, 1);
+    glActiveTexture(GL_TEXTURE10);
+    glBindTexture(GL_TEXTURE_2D, textures[10]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, x, y, 0, GL_RED, GL_UNSIGNED_BYTE,  transp);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    fprintf(stderr, "transpec %dx%d:%d\n", x, y, comp);
 
     // Try to load and compile shader
     int status;
@@ -278,11 +299,18 @@ int main( int argc, char **argv )
     GLuint laccum_lightDirectionLocation = glGetUniformLocation(laccum_shader.program, "LightDirection");
     GLuint laccum_lightColorLocation = glGetUniformLocation(laccum_shader.program, "LightColor");
     GLuint laccum_lightIntensityLocation = glGetUniformLocation(laccum_shader.program, "LightIntensity");
+
+    GLuint laccum_lampLightPositionLocation = glGetUniformLocation(laccum_shader.program, "LampLightPosition");
+    GLuint laccum_lampLightDirectionLocation = glGetUniformLocation(laccum_shader.program, "LampLightDirection");
+    GLuint laccum_lampLightColorLocation = glGetUniformLocation(laccum_shader.program, "LampLightColor");
+    GLuint laccum_lampLightIntensityLocation = glGetUniformLocation(laccum_shader.program, "LampLightIntensity");
+    GLuint laccum_nbLampLocation = glGetUniformLocation(laccum_shader.program, "NombreLampe");
+
     GLuint laccum_shadowBiasLocation = glGetUniformLocation(laccum_shader.program, "ShadowBias");
     GLuint laccum_shadowSamples = glGetUniformLocation(laccum_shader.program, "ShadowSamples");
     GLuint laccum_shadowSampleSpread = glGetUniformLocation(laccum_shader.program, "ShadowSampleSpread");
 
-     float shadowBias = 0.001f;
+     float shadowBias = 0.002f;
     float shadowSamples = 6.0;
     float shadowSampleSpread = 1000.0;
     
@@ -352,7 +380,7 @@ int main( int argc, char **argv )
     int   cube_triangleCount = 12;
     int   cube_triangleList[] = {0, 1, 2, 2, 1, 3, 4, 5, 6, 6, 5, 7, 8, 9, 10, 10, 9, 11, 12, 13, 14, 14, 13, 15, 16, 17, 18, 19, 17, 20, 21, 22, 23, 24, 25, 26, };
     float cube_uvs[] = {0.f, 0.f, 0.f, 1.f, 1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f, 1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f, 1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f, 1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f, 1.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f,  1.f, 1.f,  0.f, 0.f, 0.f, 0.f, 1.f, 1.f,  1.f, 0.f,  };
-    float cube_vertices[] = {-0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5 };
+    float cube_vertices[] = {-0.01, -0.01, 0.01, 0.01, -0.01, 0.01, -0.01, 0.01, 0.01, 0.01, 0.01, 0.01, -0.01, 0.01, 0.01, 0.01, 0.01, 0.01, -0.01, 0.01, -0.01, 0.01, 0.01, -0.01, -0.01, 0.01, -0.01, 0.01, 0.01, -0.01, -0.01, -0.01, -0.01, 0.01, -0.01, -0.01, -0.01, -0.01, -0.01, 0.01, -0.01, -0.01, -0.01, -0.01, 0.01, 0.01, -0.01, 0.01, 0.01, -0.01, 0.01, 0.01, -0.01, -0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, -0.01, -0.01, -0.01, -0.01, -0.01, -0.01, 0.01, -0.01, 0.01, -0.01, -0.01, 0.01, -0.01, -0.01, -0.01, 0.01, -0.01, 0.01, 0.01 };
     float cube_normals[] = {0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, };
 
    
@@ -382,11 +410,11 @@ int main( int argc, char **argv )
 
 /////////////// ----------------------------- Init Buffer -------------------- ////////////////////
     // Vertex Array Objects
-    GLuint vao[75];
-    glGenVertexArrays(75, vao);
+    GLuint vao[8];
+    glGenVertexArrays(8, vao);
     // Vertex Buffer Objects
-    GLuint vbo[300];
-    glGenBuffers(300, vbo);
+    GLuint vbo[32];
+    glGenBuffers(32, vbo);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -451,9 +479,10 @@ int main( int argc, char **argv )
     float model3_translation3[3] = {-4.5,-0.85,1};
     float * model3_translation[3] = {model3_translation1, model3_translation2, model3_translation3};
     int i = 2, j = 8;
-    for(i = 2, j = 8; i < 5; i++, j = j+4)
-        BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[i], &vbo[0], j);
+    // for(i = 2, j = 8; i < 5; i++, j = j+4)
+    //     BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[i], &vbo[0], j);
 
+        BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[2], &vbo[0], 8);
 
     ////////////////////// Medium Model
     // nb:  14
@@ -473,9 +502,9 @@ int main( int argc, char **argv )
     float model2_translation13[3] = {-2.5,-1,-2};
     float model2_translation14[3] = {6.5,-1,3.5};
     float * model2_translation[14] = {model2_translation1,model2_translation2,model2_translation3,model2_translation4,model2_translation5,model2_translation6,model2_translation7,model2_translation8,model2_translation9,model2_translation10,model2_translation11,model2_translation12,model2_translation13,model2_translation14};
-    for(i = 5, j = 20; i < 19; i++, j = j+4)
-        BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[i], &vbo[0], j);
-  
+    // for(i = 5, j = 20; i < 19; i++, j = j+4)
+    //     BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[i], &vbo[0], j);
+    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[3], &vbo[0], 12);
     
     
     ////////////////////// Little Model
@@ -526,9 +555,9 @@ int main( int argc, char **argv )
         model1_translation21,model1_translation22,model1_translation23,model1_translation24,model1_translation25,model1_translation26,model1_translation27,model1_translation28,model1_translation29,model1_translation30,
         model1_translation31,model1_translation32,model1_translation33,model1_translation34,model1_translation35,model1_translation36,model1_translation37,model1_translation38,model1_translation39,model1_translation40};
    
-    for(i = 19, j = 76; i < 59; i++, j = j+4)
-        BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[i], &vbo[0], j);
-   
+    // for(i = 19, j = 76; i < 59; i++, j = j+4)
+    //     BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[i], &vbo[0], j);
+   BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[4], &vbo[0], 16);
 
 
     ////////////////////// Lamps
@@ -551,20 +580,39 @@ int main( int argc, char **argv )
     float lampe_translation15[3]  = {-5, 0, -1.75};
     float * lampe_translation[15] = {lampe_translation1,lampe_translation2,lampe_translation3,lampe_translation4,lampe_translation5,lampe_translation6,lampe_translation7,lampe_translation8,lampe_translation9,lampe_translation10,lampe_translation11,lampe_translation12,lampe_translation13,lampe_translation14,lampe_translation15};
     
-    for(i = 59, j = 236; i < 74; i++, j = j+4)
-        BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[i], &vbo[0], j);
-    
-
+    // for(i = 59, j = 236; i < 74; i++, j = j+4){
+    //     BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[i], &vbo[0], j);
+    // }
+    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[5], &vbo[0], 20);
 
      ////////////////////// Skybox
     // nb:  
-    DoTheImportThing("obj/cube_reversed.obj", skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 0, 0.5);
+    DoTheImportThing("obj/cube_reversed.obj", skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 0, 0.01);
     float skybox_translation[3] = {00., 0, 0.};
     BindingInstanceLike(skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 
-                        vao[74], &vbo[0], 296);
+                        vao[6], &vbo[0], 24);
 
-   
-
+    
+    ////////////////////// Quad
+    glBindVertexArray(vao[7]);
+    // Bind indices and upload data
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[28]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_triangleList), cube_triangleList, GL_STATIC_DRAW);
+    // Bind vertices and upload data
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[29]);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+    // Bind normals and upload data
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[30]);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_normals), cube_normals, GL_STATIC_DRAW);
+    // Bind uv coords and upload data
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[31]);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uvs), cube_uvs, GL_STATIC_DRAW);
 
 
 
@@ -593,6 +641,15 @@ int main( int argc, char **argv )
     {
       fprintf(stderr, "Error on building framebuffer\n");
       exit( EXIT_FAILURE );
+    }
+
+    FramebufferGL deferredShadingFB;
+    status = build_framebuffer(deferredShadingFB, width, height, 1);
+    
+    if (status == -1)
+    {
+        fprintf(stderr, "Error on building framebuffer\n");
+        exit( EXIT_FAILURE );
     }
 
 
@@ -740,7 +797,7 @@ int main( int argc, char **argv )
           glBindTexture(GL_TEXTURE_2D, textures[4]);
 
 
-          glBindVertexArray(vao[74]);
+          glBindVertexArray(vao[6]);
           glDrawElements(GL_TRIANGLES, skybox_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           
           glEnable(GL_DEPTH_TEST);
@@ -783,26 +840,26 @@ int main( int argc, char **argv )
           glBindTexture(GL_TEXTURE_2D, textures[1]);
 
           for(int i = 0; i < 40; ++i){// 40
-              glBindVertexArray(vao[i+19]);
+              glBindVertexArray(vao[4]);
               glUniform3f(gbuffer_translationLocation, model1_translation[i][0], model1_translation[i][1], model1_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
 
-          // glUniform1f(gbuffer_timeLocation, t);
-          // for(int i = 0; i < 15; ++i){// 15
-          //     glBindVertexArray(vao[i+59]);
-          //     glUniform3f(gbuffer_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
-          //     glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-          // }
+          glUniform1f(gbuffer_timeLocation, t);
+          for(int i = 0; i < 15; ++i){// 15
+              glBindVertexArray(vao[5]);
+              glUniform3f(gbuffer_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
+              glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
 
           glUniform1i(gbuffer_diffuseLocation, 7);
            // Bind textures
           glActiveTexture(GL_TEXTURE7);
           glBindTexture(GL_TEXTURE_2D, textures[7]);
 
-          //glUniform1f(gbuffer_timeLocation, 0);
+          glUniform1f(gbuffer_timeLocation, 0);
           for(int i = 0; i < 3; ++i){ // 3
-              glBindVertexArray(vao[i+2]);
+              glBindVertexArray(vao[2]);
               glUniform3f(gbuffer_translationLocation, model3_translation[i][0], model3_translation[i][1], model3_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
           }
@@ -813,18 +870,42 @@ int main( int argc, char **argv )
           glBindTexture(GL_TEXTURE_2D, textures[8]);
 
           for(int i = 0; i < 14; ++i){// 14
-              glBindVertexArray(vao[i+5]);
+              glBindVertexArray(vao[3]);
               glUniform3f(gbuffer_translationLocation, model2_translation[i][0], model2_translation[i][1], model2_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
+
+
          
+          glUniform1i(gbuffer_diffuseLocation, 9);
+          glUniform1i(gbuffer_specLocation, 10);
 
-        
+          glActiveTexture(GL_TEXTURE9);
+          glBindTexture(GL_TEXTURE_2D, textures[9]);
+          glActiveTexture(GL_TEXTURE10);
+          glBindTexture(GL_TEXTURE_2D, textures[10]);
 
+          glEnable(GL_BLEND);
+          glBlendFunc(GL_ONE, GL_ONE);
+          glUniform1f(gbuffer_timeLocation, t);
+          for(int i = 0 ; i<15 ; ++i) {
+            glBindVertexArray(vao[7]);
+            glUniform3f(gbuffer_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
+            glDrawElements(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+          glUniform1f(gbuffer_timeLocation, 0);
+            for(int i = 0 ; i<3 ; ++i) {
+           glBindVertexArray(vao[7]);
+            glUniform3f(gbuffer_translationLocation, model3_translation[i][0], model3_translation[i][1], model3_translation[i][2]);
+            glDrawElements(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+
+          glDisable(GL_BLEND);
+            
         
           // Compute light positions
           //float lightPosition[3] = { -4.0, 500.0, -4.0};
-          float lightPosition[3] = { 5.0, 10.0, 5.0};
+          float lightPosition[3] = { 5.0, 5.0, 5.0};
           // float lightPosition[3] = { sin(t/10) * 5.0, 50.0, cos(t/10) * 5.0};
           float lightTarget[3] = { 0.0, 0.0, 0.0};
           float lightDirection[3];
@@ -864,35 +945,39 @@ int main( int argc, char **argv )
           glUniformMatrix4fv(shadowgen_objectLocation, 1, 0, objectToWorld);
           glUniform1f(shadowgen_timeLocation, t);
 
-          // Render vaos  
-          glBindVertexArray(vao[0]);
+          // // Render vaos  
+          // glBindVertexArray(vao[0]);
           glUniform1f(shadowgen_timeLocation, 0);
-          glUniform3f(shadowgen_translationLocation, IdTranslation[0], IdTranslation[1], IdTranslation[2]);
-          glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+          // glUniform3f(shadowgen_translationLocation, IdTranslation[0], IdTranslation[1], IdTranslation[2]);
+          // glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
           for(int i = 0; i < 40; ++i){// 40
-              glBindVertexArray(vao[i+19]);
+              glBindVertexArray(vao[4]);
               glUniform3f(shadowgen_translationLocation, model1_translation[i][0], model1_translation[i][1], model1_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
           glUniform1f(shadowgen_timeLocation, t);
           for(int i = 0; i < 15; ++i){// 15
-              glBindVertexArray(vao[i+59]);
+              glBindVertexArray(vao[5]);
               glUniform3f(shadowgen_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
               glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
           glUniform1f(shadowgen_timeLocation, 0);
           for(int i = 0; i < 3; ++i){ // 3
-              glBindVertexArray(vao[i+2]);
+              glBindVertexArray(vao[2]);
               glUniform3f(shadowgen_translationLocation, model3_translation[i][0], model3_translation[i][1], model3_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
           }
           for(int i = 0; i < 14; ++i){// 14
-              glBindVertexArray(vao[i+5]);
+              glBindVertexArray(vao[3]);
               glUniform3f(shadowgen_translationLocation, model2_translation[i][0], model2_translation[i][1], model2_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
 
+          // glBindVertexArray(vao[7]);
+          // glUniform3f(shadowgen_translationLocation, lampe_translation[0][0], lampe_translation[0][1], lampe_translation[0][2]);
+          // glUniform1f(shadowgen_timeLocation, t);
+          // glDrawElements(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
       // Unbind bufferx 
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -936,6 +1021,7 @@ int main( int argc, char **argv )
 
         
         glBlendFunc(GL_ONE, GL_ONE);
+        glDisable(GL_BLEND);
 
 
         // Light uniforms
@@ -944,19 +1030,41 @@ int main( int argc, char **argv )
         glUniform3fv(laccum_lightColorLocation, 1, lightColor);
         glUniform1f(laccum_lightIntensityLocation, lightIntensity);
 
+        glUniform1i(laccum_nbLampLocation,18);
+        for(int i = 0 ; i < 15 ; ++i) {
+            float lampLightPosition[3] = {lampe_translation[i][0],lampe_translation[i][1]+2,lampe_translation[i][2]};
+            float lampLightTarget[3] = {lampe_translation[i][0],lampe_translation[i][1]+2,lampe_translation[i][2]};
+            float lampLightDirection[3];
+            vec3fSub(lampLightTarget, lampLightPosition, lampLightDirection);
+            vec3fNormalize(lampLightDirection, vec3fNorm(lampLightDirection));
+            float lampLightColor[3] = {0., 0.8, .8};
+            float lampLightIntensity = .5;
+
+            glUniform3fv(laccum_lampLightDirectionLocation, 1, lampLightDirection);
+            glUniform3fv(laccum_lampLightPositionLocation, 1, lampLightPosition);
+            glUniform3fv(laccum_lampLightColorLocation, 1, lampLightColor);
+            glUniform1f(laccum_lampLightIntensityLocation, lampLightIntensity);
+        }
+        for(int i = 0 ; i < 3 ; ++i) {
+            float lampLightPosition[3] = {model3_translation[i][0],model3_translation[i][1]+2,model3_translation[i][2]};
+            float lampLightTarget[3] = {model3_translation[i][0],0,model3_translation[i][2]};
+            float lampLightDirection[3];
+            vec3fSub(lampLightTarget, lampLightPosition, lampLightDirection);
+            vec3fNormalize(lampLightDirection, vec3fNorm(lampLightDirection));
+            float lampLightColor[3] = {0.8, 0., 0.};
+            float lampLightIntensity = .1;
+
+            glUniform3fv(laccum_lampLightDirectionLocation, 1, lampLightDirection);
+            glUniform3fv(laccum_lampLightPositionLocation, 1, lampLightPosition);
+            glUniform3fv(laccum_lampLightColorLocation, 1, lampLightColor);
+            glUniform1f(laccum_lampLightIntensityLocation, lampLightIntensity);
+        }
+
       // Draw quad
       glBindVertexArray(vao[1]);
       glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
-      
-      
-      glUseProgram(gbuffer_shader.program);
-      glUniform1f(gbuffer_timeLocation, t);
-      for(int i = 0; i < 15; ++i){// 15
-          glBindVertexArray(vao[i+59]);
-          glUniform3f(gbuffer_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
-          glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
-      }
+    
 
       glDisable(GL_BLEND);
 
