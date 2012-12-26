@@ -4,6 +4,7 @@ uniform mat4 View;
 uniform mat4 Object;
 uniform float Time;
 uniform vec3 translation;
+uniform float rotation;
 
 in vec3 VertexPosition;
 in vec3 VertexNormal;
@@ -18,9 +19,12 @@ void main(void)
 	mat3 roatationTime = mat3(cos(Time), 0, sin(Time),
 							    0,    1,   0,
 							 -sin(Time), 0, cos(Time));
+	mat3 rotationMat = mat3(cos(rotation), 0, sin(rotation),
+							    0,    1,   0,
+							 -sin(rotation), 0, cos(rotation));
 	uv = VertexTexCoord;
 	normal = vec3(Object * vec4(VertexNormal*roatationTime, 1.0));
-	vec3 pos = VertexPosition*roatationTime + translation;
+	vec3 pos = VertexPosition*roatationTime * rotationMat + translation;
 	position = vec3(Object * vec4(pos, 1.0));
 	position.y += 0.1*sin(Time); 
 	

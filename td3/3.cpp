@@ -258,6 +258,7 @@ int main( int argc, char **argv )
     GLuint gbuffer_diffuseLocation = glGetUniformLocation(gbuffer_shader.program, "Diffuse");
     GLuint gbuffer_specLocation = glGetUniformLocation(gbuffer_shader.program, "Spec");
     GLuint gbuffer_translationLocation = glGetUniformLocation(gbuffer_shader.program, "translation");
+    GLuint gbuffer_rotationLocation = glGetUniformLocation(gbuffer_shader.program, "rotation");
 
 
     // SKYBOX
@@ -272,8 +273,7 @@ int main( int argc, char **argv )
     GLuint skybox_projectionLocation = glGetUniformLocation(skybox_shader.program, "Projection");
     GLuint skybox_viewLocation = glGetUniformLocation(skybox_shader.program, "View");
     GLuint skybox_objectLocation = glGetUniformLocation(skybox_shader.program, "Object");
-    GLuint skybox_rotationTimeLocation = glGetUniformLocation(skybox_shader.program, "RationTime");
-    GLuint skybox_rotationLocation = glGetUniformLocation(skybox_shader.program, "Rotation");
+    GLuint skybox_translationLocation = glGetUniformLocation(skybox_shader.program, "Translation");
     GLuint skybox_boxLocation = glGetUniformLocation(skybox_shader.program, "Box");
 
    
@@ -292,6 +292,8 @@ int main( int argc, char **argv )
     GLuint laccum_normalLocation = glGetUniformLocation(laccum_shader.program, "Normal");
     GLuint laccum_depthLocation = glGetUniformLocation(laccum_shader.program, "Depth");
     GLuint laccum_shadowLocation = glGetUniformLocation(laccum_shader.program, "Shadow");
+    GLuint laccum_timeLocation = glGetUniformLocation(laccum_shader.program, "Time");
+
     GLuint laccum_inverseViewProjectionLocation = glGetUniformLocation(laccum_shader.program, "InverseViewProjection");
     GLuint laccum_projectionLightLocation = glGetUniformLocation(laccum_shader.program, "ProjectionLight");
     GLuint laccum_cameraPositionLocation = glGetUniformLocation(laccum_shader.program, "CameraPosition");
@@ -299,12 +301,6 @@ int main( int argc, char **argv )
     GLuint laccum_lightDirectionLocation = glGetUniformLocation(laccum_shader.program, "LightDirection");
     GLuint laccum_lightColorLocation = glGetUniformLocation(laccum_shader.program, "LightColor");
     GLuint laccum_lightIntensityLocation = glGetUniformLocation(laccum_shader.program, "LightIntensity");
-
-    GLuint laccum_lampLightPositionLocation = glGetUniformLocation(laccum_shader.program, "LampLightPosition");
-    GLuint laccum_lampLightDirectionLocation = glGetUniformLocation(laccum_shader.program, "LampLightDirection");
-    GLuint laccum_lampLightColorLocation = glGetUniformLocation(laccum_shader.program, "LampLightColor");
-    GLuint laccum_lampLightIntensityLocation = glGetUniformLocation(laccum_shader.program, "LampLightIntensity");
-    GLuint laccum_nbLampLocation = glGetUniformLocation(laccum_shader.program, "NombreLampe");
 
     GLuint laccum_shadowBiasLocation = glGetUniformLocation(laccum_shader.program, "ShadowBias");
     GLuint laccum_shadowSamples = glGetUniformLocation(laccum_shader.program, "ShadowSamples");
@@ -389,7 +385,7 @@ int main( int argc, char **argv )
     int   plane_triangleCount = 2;
     int   plane_triangleList[] = {0, 1, 2, 2, 1, 3}; 
     float plane_uvs[] = {0.f, 0.f, 0.f, 100.f, 100.f, 0.f, 100.f, 100.f};
-    float plane_vertices[] = {-10.0, -1.0, 10.0, 10.0, -1.0, 10.0, -10.0, -1.0, -10.0, 10.0, -1.0, -10.0};
+    float plane_vertices[] = {-15.0, -1.0, 15.0, 15.0, -1.0, 15.0, -15.0, -1.0, -15.0, 15.0, -1.0, -15.0};
     float plane_normals[] = {0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
     
     // Init a quad
@@ -401,9 +397,9 @@ int main( int argc, char **argv )
 
    
 /////////////// ----------------------------- Init Camera -------------------- ////////////////////
-    float center[4] = {0.399295, -0.634027, 0.000186918, 0};
-    float dist = 1.91782;
-    camera.init(center, dist, 1.57, 1.57);
+    float center[4] = {0.996354, -0.527525, 3.66418, 0};
+    float dist =  16.0461;
+    //camera.init(center, dist, 0.05501, 7.86);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     
@@ -474,121 +470,137 @@ int main( int argc, char **argv )
     ////////////////////// Big Model
     // nb:    3
     DoTheImportThing("obj/modele3.obj", model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices,  0, 4);
-    float model3_translation1[3] = {0,-0.85,-1};
-    float model3_translation2[3] = {5,-0.85,1.5};
+    float model3_translation1[3] = {0,-0.85,4.2};
+    float model3_translation2[3] = {9,-0.85,2.5};
     float model3_translation3[3] = {-4.5,-0.85,1};
     float * model3_translation[3] = {model3_translation1, model3_translation2, model3_translation3};
     int i = 2, j = 8;
-    // for(i = 2, j = 8; i < 5; i++, j = j+4)
-    //     BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[i], &vbo[0], j);
-
         BindingInstanceLike(model3_FacesIndices, model3_Vertices, model3_Normals, model3_UVs, model3_NumFaces, model3_NumVertices, vao[2], &vbo[0], 8);
 
     ////////////////////// Medium Model
     // nb:  14
     DoTheImportThing("obj/modele2.obj", model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, 0, 7.5);
-    float model2_translation1[3] = {1.5,-1,-0.5};
-    float model2_translation2[3] = {1.5,-1,-2.5};
-    float model2_translation3[3] = {2.5,-1,1.5};
-    float model2_translation4[3] = {-2,-1,1.5};
-    float model2_translation5[3] = {-2.5,-1,4};
-    float model2_translation6[3] = {-6,-1,4};
-    float model2_translation7[3] = {4.5,-1,4};
-    float model2_translation8[3] = {3.5,-1,-3.5};
-    float model2_translation9[3] = {6.5,-1,-2};
-    float model2_translation10[3] = {-0.5,-1,-3.5};
-    float model2_translation11[3] = {-4,-1,-4};
-    float model2_translation12[3] = {-1.5,-1,0.25};
+    float model2_translation1[3]  = {3.   ,-1  ,0};
+    float model2_translation2[3]  = {-3.5 ,-1  ,6.5};
+    float model2_translation3[3]  = {4.3  ,-1  ,2.};
+    float model2_translation4[3]  = {-4.1 ,-1  ,2.};
+    float model2_translation5[3]  = {-3.1 ,-1  ,-0.1};
+    float model2_translation6[3]  = {-4.1 ,-1  ,4.3};
+    float model2_translation7[3]  = {4.6  ,-1  ,4.3};
+    float model2_translation8[3]  = {4.2  ,-1  ,6.3};
+    float model2_translation9[3]  = {2.8  ,-1  ,7.9};
+    float model2_translation10[3] = {0.4  ,-1  ,8.2};
+    float model2_translation11[3] = {-1.9  ,-1  ,7.8};
+    float model2_translation12[3] = {0,-1,-1.25};
+
     float model2_translation13[3] = {-2.5,-1,-2};
     float model2_translation14[3] = {6.5,-1,3.5};
     float * model2_translation[14] = {model2_translation1,model2_translation2,model2_translation3,model2_translation4,model2_translation5,model2_translation6,model2_translation7,model2_translation8,model2_translation9,model2_translation10,model2_translation11,model2_translation12,model2_translation13,model2_translation14};
-    // for(i = 5, j = 20; i < 19; i++, j = j+4)
-    //     BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[i], &vbo[0], j);
-    BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[3], &vbo[0], 12);
+    float Model2_angle[14] = {-15+3.14/2, 16.3+3.14/2 , -15.5+3.14/2 , 15.5+3.14/2 , 15+3.14/2 , 16+3.14/2 , -16+3.14/2 , -16.3+3.14/2 , -16.8+3.14/2 , -17.3+3.14/2 , -17.8+3.14/2 , 0 , 0 , 0};
+        BindingInstanceLike(model2_FacesIndices, model2_Vertices, model2_Normals, model2_UVs, model2_NumFaces, model2_NumVertices, vao[3], &vbo[0], 12);
     
     
     ////////////////////// Little Model
     // nb:  40
+        int Nbmodle = 58;
     DoTheImportThing("obj/modele1.obj", model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, 0, 16);
-    float model1_translation1[3] = {3.66,-1,-1.66};
-    float model1_translation2[3] = {3.66,-1,-1};
-    float model1_translation3[3] = {3.66,-1,-0.33};
-    float model1_translation4[3] = {4.33,-1,-1.66};
-    float model1_translation5[3] = {4.33,-1,-1};
-    float model1_translation6[3] = {-0.66,-1,3.33};
-    float model1_translation7[3] = {0,-1,3.33};
-    float model1_translation8[3] = {0.66,-1,3.33};
-    float model1_translation9[3] = {1.33,-1,3.33};
-    float model1_translation10[3] = {2,-1,3.33};
-    float model1_translation11[3] = {2.66,-1,3.33};
-    float model1_translation12[3] = {-0.66,-1,4};
-    float model1_translation13[3] = {0,-1,4};
-    float model1_translation14[3] = {0.66,-1,4};
-    float model1_translation15[3] = {1.33,-1,4};
-    float model1_translation16[3] = {2,-1,4};
-    float model1_translation17[3] = {2.66,-1,4};
-    float model1_translation18[3] = {7,-1,0};
-    float model1_translation19[3] = {7,-1,0.66};
-    float model1_translation20[3] = {7,-1,1.33};
-    float model1_translation21[3] = {7,-1,2};
-    float model1_translation22[3] = {7,-1,2.66};
-    float model1_translation23[3] = {-3.66,-1,4.33};
-    float model1_translation24[3] = {-4.33,-1,4.33};
-    float model1_translation25[3] = {-5,-1,4.33};
-    float model1_translation26[3] = {-5,-1,-2.33};
-    float model1_translation27[3] = {-5.5,-1,-4.33};
-    float model1_translation28[3] = {0.33,-1,-4.33};
-    float model1_translation29[3] = {1,-1,-4.33};
-    float model1_translation30[3] = {3,-1,-4.33};
-    float model1_translation31[3] = {3.66,-1,-4.33};
-    float model1_translation32[3] = {5.33,-1,-4.33};
-    float model1_translation33[3] = {6,-1,-4.33};
-    float model1_translation34[3] = {6.66,-1,-4.33};
-    float model1_translation35[3] = {6.66,-1,-3.66};
-    float model1_translation36[3] = {-1.33,-1,-4.33};
-    float model1_translation37[3] = {-2,-1,-4.33};
-    float model1_translation38[3] = {-2.66,-1,-4.33};
-    float model1_translation39[3] = {-5,-1,-4.33};
-    float model1_translation40[3] = {-5.66,-1,-4.33};
-    float * model1_translation[40] = {model1_translation1,model1_translation2,model1_translation3,model1_translation4,model1_translation5,model1_translation6,model1_translation7,model1_translation8,model1_translation9,model1_translation10,
+    float model1_translation1[3] = {2  ,-1  ,-5};
+    float model1_translation2[3] = {3  ,-1  ,-5};
+    float model1_translation3[3] = {4  ,-1  ,-5};
+    float model1_translation4[3] = {5  ,-1  ,-4};
+    float model1_translation5[3] = {6  ,-1  ,-3};
+    float model1_translation6[3] = {7  ,-1  ,-2};
+    float model1_translation7[3] = {8  ,-1  ,-1};
+    float model1_translation8[3] = {8  ,-1  ,0};
+    float model1_translation9[3] = {8  ,-1  ,1};
+    float model1_translation10[3] = {8  ,-1  ,2};
+    float model1_translation11[3] = {8  ,-1  ,3};
+    float model1_translation12[3] = {8  ,-1  ,4};
+    float model1_translation13[3] = {8  ,-1  ,5};
+    float model1_translation14[3] = {8  ,-1  ,6};
+    float model1_translation15[3] = {8  ,-1  ,7};
+    float model1_translation16[3] = {7  ,-1  ,8};
+    float model1_translation17[3] = {6  ,-1  ,9};
+    float model1_translation18[3] = {5  ,-1  ,10};
+    float model1_translation19[3] = {4  ,-1  ,11};
+    float model1_translation20[3] = {3  ,-1  ,12};
+    float model1_translation21[3] = {2  ,-1  ,12};
+    float model1_translation22[3] = {1  ,-1  ,12};
+    float model1_translation23[3] = {0  ,-1  ,12};
+    float model1_translation24[3] = {-1  ,-1  ,12};
+    float model1_translation25[3] = {-2  ,-1  ,12};
+    float model1_translation26[3] = {0  ,-1  ,11};
+    float model1_translation27[3] = {0  ,-1  ,10};
+    float model1_translation28[3] = {1  ,-1  ,10};
+    float model1_translation29[3] = {2  ,-1  ,10};
+    float model1_translation30[3] = {3  ,-1  ,11};
+
+    float model1_translation31[3] = {-2  ,-1  ,-5};
+    float model1_translation32[3] = {-3  ,-1  ,-5};
+    float model1_translation33[3] = {-4  ,-1  ,-5};
+    float model1_translation34[3] = {-5  ,-1  ,-4};
+    float model1_translation35[3] = {-6  ,-1  ,-3};
+    float model1_translation36[3] = {-7  ,-1  ,-2};
+    float model1_translation37[3] = {-8  ,-1  ,-1};
+    float model1_translation38[3] = {-8  ,-1  ,0};
+    float model1_translation39[3] = {-8  ,-1  ,1};
+    float model1_translation40[3] = {-8  ,-1  ,2};
+    float model1_translation41[3] = {-8  ,-1  ,3};
+    float model1_translation42[3] = {-8  ,-1  ,4};
+    float model1_translation43[3] = {-8  ,-1  ,5};
+    float model1_translation44[3] = {-8  ,-1  ,6};
+    float model1_translation45[3] = {-8  ,-1  ,7};
+    float model1_translation46[3] = {-7  ,-1  ,8};
+    float model1_translation47[3] = {-6  ,-1  ,9};
+    float model1_translation48[3] = {-5  ,-1  ,10};
+    float model1_translation49[3] = {-4  ,-1  ,11};
+    float model1_translation50[3] = {-3  ,-1  ,12};
+    float model1_translation51[3] = {-2  ,-1  ,12};
+    float model1_translation52[3] = {-1  ,-1  ,12};
+    float model1_translation53[3] = {-0  ,-1  ,12};
+    float model1_translation54[3] = {1  ,-1  ,12};
+    float model1_translation55[3] = {2  ,-1  ,12};
+    float model1_translation56[3] = {-1  ,-1  ,10};
+    float model1_translation57[3] = {-2  ,-1  ,10};
+    float model1_translation58[3] = {-3  ,-1  ,11};
+   
+    float * model1_translation[58] = {model1_translation1,model1_translation2,model1_translation3,model1_translation4,model1_translation5,model1_translation6,model1_translation7,model1_translation8,model1_translation9,model1_translation10,
         model1_translation11,model1_translation12,model1_translation13,model1_translation14,model1_translation15,model1_translation16,model1_translation17,model1_translation18,model1_translation19,model1_translation20,
         model1_translation21,model1_translation22,model1_translation23,model1_translation24,model1_translation25,model1_translation26,model1_translation27,model1_translation28,model1_translation29,model1_translation30,
-        model1_translation31,model1_translation32,model1_translation33,model1_translation34,model1_translation35,model1_translation36,model1_translation37,model1_translation38,model1_translation39,model1_translation40};
+        model1_translation31,model1_translation32,model1_translation33,model1_translation34,model1_translation35,model1_translation36,model1_translation37,model1_translation38,model1_translation39,model1_translation40,
+        model1_translation41,model1_translation42,model1_translation43,model1_translation44,model1_translation45,model1_translation46,model1_translation47,model1_translation48,model1_translation49,model1_translation50,
+        model1_translation51,model1_translation52,model1_translation55,model1_translation54,model1_translation55,model1_translation56,model1_translation57,model1_translation58};
    
-    // for(i = 19, j = 76; i < 59; i++, j = j+4)
-    //     BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[i], &vbo[0], j);
-   BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[4], &vbo[0], 16);
+    BindingInstanceLike(model1_FacesIndices, model1_Vertices, model1_Normals, model1_UVs, model1_NumFaces, model1_NumVertices, vao[4], &vbo[0], 16);
 
 
     ////////////////////// Lamps
     // nb:  15
     DoTheImportThing("obj/lampe_asura.obj", lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, 0, 20);
-    float lampe_translation1[3*15] = {0, 0.3, 1.5};
-    float lampe_translation2[3] = {0, 0, 0.5};
-    float lampe_translation3[3] = {-0.66, 0, 0.88};
-    float lampe_translation4[3] = {-1, 0, 1.5};
-    float lampe_translation5[3] = {-0.66, 0, 2.16};
-    float lampe_translation6[3] = {0, 0, 1.5};
-    float lampe_translation7[3] = {0.66, 0, 2.16};
-    float lampe_translation8[3] = {1, 0, 1.5};
-    float lampe_translation9[3] = {0.66, 0, 0.88};
-    float lampe_translation10[3]  = {0, 0, 3};
-    float lampe_translation11[3]  = {0, 0, 3};
-    float lampe_translation12[3]  = {0, 0, 3};
+    float lampe_translation1[3]  = {3.   ,0  ,0};
+    float lampe_translation2[3]  = {-3.5 ,0  ,6.5};
+    float lampe_translation3[3]  = {4.3  ,0  ,2.};
+    float lampe_translation4[3]  = {-4.1 ,0  ,2.};
+    float lampe_translation5[3]  = {-3.1 ,0  ,-0.1};
+    float lampe_translation6[3]  = {-4.1 ,0  ,4.3};
+    float lampe_translation7[3]  = {4.6  ,0  ,4.3};
+    float lampe_translation8[3]  = {4.2  ,0  ,6.3};
+    float lampe_translation9[3]  = {2.8  ,0  ,7.9};
+    float lampe_translation10[3] = {0.4  ,0  ,8.2};
+    float lampe_translation11[3] = {-1.9  ,0  ,7.8};
+    float lampe_translation12[3] = {0,0,-1.25};
+
     float lampe_translation13[3]  = {0, 0, 3};
     float lampe_translation14[3]  = {0, 0, 3};
     float lampe_translation15[3]  = {-5, 0, -1.75};
     float * lampe_translation[15] = {lampe_translation1,lampe_translation2,lampe_translation3,lampe_translation4,lampe_translation5,lampe_translation6,lampe_translation7,lampe_translation8,lampe_translation9,lampe_translation10,lampe_translation11,lampe_translation12,lampe_translation13,lampe_translation14,lampe_translation15};
     
-    // for(i = 59, j = 236; i < 74; i++, j = j+4){
-    //     BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[i], &vbo[0], j);
-    // }
-    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[5], &vbo[0], 20);
+   BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[5], &vbo[0], 20);
 
      ////////////////////// Skybox
     // nb:  
-    DoTheImportThing("obj/cube_reversed.obj", skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 0, 0.01);
-    float skybox_translation[3] = {00., 0, 0.};
+    DoTheImportThing("obj/cube_reversed.obj", skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 0, 0.2);
+    float skybox_translation[3] = {00., -2, 0.};
     BindingInstanceLike(skybox_FacesIndices, skybox_Vertices, skybox_Normals, skybox_UVs, skybox_NumFaces, skybox_NumVertices, 
                         vao[6], &vbo[0], 24);
 
@@ -658,10 +670,33 @@ int main( int argc, char **argv )
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     bool printInfos = true;
+    float after[39] = {-3.5,   0,   0, 
+                      -3.5 ,  0  ,6.5, 
+                      4.3    ,0  ,2., 
+                      -4.1 ,0  ,2., 
+                      -3.1 ,0  ,-0.1,
+                      -4.1 ,0  ,4.3, 
+                      4.6  ,0  ,4.3, 
+                      4.2  ,0  ,6.3, 
+                      2.8  ,0  ,7.9, 
+                      0.4  ,0  ,8.2, 
+                      -1.9  ,0  ,7.8, 
+                      0,0,-1.25, 
+                      3.   ,-1  ,0};
+
+
+ 
+    float before[3] = {camera.getEye()[0], 0, camera.getEye()[2]};
+    int index = 0; 
     do
     {
+      if(index > 12)
+        index = 0;
       t = glfwGetTime();
-
+     // std::cout << t << std::endl;
+      camera.updateCamera(before, after);
+      before[0] = after[3*index+0]; before[1] = after[3*index+1]; before[2] = after[3*index+2];
+      index++;
       // Mouse states
       int leftButton = glfwGetMouseButton( GLFW_MOUSE_BUTTON_LEFT );
       int rightButton = glfwGetMouseButton( GLFW_MOUSE_BUTTON_RIGHT );
@@ -791,7 +826,8 @@ int main( int argc, char **argv )
           glUniformMatrix4fv(skybox_viewLocation, 1, 0, worldToView);
           glUniformMatrix4fv(skybox_objectLocation, 1, 0, objectToWorld);
           glUniform1i(skybox_boxLocation, 4);
-          
+          glUniform3f(skybox_translationLocation, skybox_translation[0], skybox_translation[1], skybox_translation[2]);
+
           // Bind textures
           glActiveTexture(GL_TEXTURE4);
           glBindTexture(GL_TEXTURE_2D, textures[4]);
@@ -819,6 +855,7 @@ int main( int argc, char **argv )
 
           glUniform1i(gbuffer_diffuseLocation, 5);
           glUniform1i(gbuffer_specLocation, 6);
+          glUniform1f(gbuffer_rotationLocation, 0);
 
           glActiveTexture(GL_TEXTURE5);
           glBindTexture(GL_TEXTURE_2D, textures[5]);
@@ -839,7 +876,7 @@ int main( int argc, char **argv )
           glActiveTexture(GL_TEXTURE1);
           glBindTexture(GL_TEXTURE_2D, textures[1]);
 
-          for(int i = 0; i < 40; ++i){// 40
+          for(int i = 0; i < Nbmodle; ++i){// 40
               glBindVertexArray(vao[4]);
               glUniform3f(gbuffer_translationLocation, model1_translation[i][0], model1_translation[i][1], model1_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
@@ -858,7 +895,7 @@ int main( int argc, char **argv )
           glBindTexture(GL_TEXTURE_2D, textures[7]);
 
           glUniform1f(gbuffer_timeLocation, 0);
-          for(int i = 0; i < 3; ++i){ // 3
+          for(int i = 0; i < 1; ++i){ // 3
               glBindVertexArray(vao[2]);
               glUniform3f(gbuffer_translationLocation, model3_translation[i][0], model3_translation[i][1], model3_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
@@ -869,8 +906,9 @@ int main( int argc, char **argv )
           glActiveTexture(GL_TEXTURE8);
           glBindTexture(GL_TEXTURE_2D, textures[8]);
 
-          for(int i = 0; i < 14; ++i){// 14
+          for(int i = 0; i < 12; ++i){// 14
               glBindVertexArray(vao[3]);
+              glUniform1f(gbuffer_rotationLocation, Model2_angle[i]);
               glUniform3f(gbuffer_translationLocation, model2_translation[i][0], model2_translation[i][1], model2_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
@@ -894,12 +932,7 @@ int main( int argc, char **argv )
             glDrawElements(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
           }
           glUniform1f(gbuffer_timeLocation, 0);
-            for(int i = 0 ; i<3 ; ++i) {
-           glBindVertexArray(vao[7]);
-            glUniform3f(gbuffer_translationLocation, model3_translation[i][0], model3_translation[i][1], model3_translation[i][2]);
-            glDrawElements(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
-          }
-
+           
           glDisable(GL_BLEND);
             
         
@@ -946,12 +979,10 @@ int main( int argc, char **argv )
           glUniform1f(shadowgen_timeLocation, t);
 
           // // Render vaos  
-          // glBindVertexArray(vao[0]);
+         
           glUniform1f(shadowgen_timeLocation, 0);
-          // glUniform3f(shadowgen_translationLocation, IdTranslation[0], IdTranslation[1], IdTranslation[2]);
-          // glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
-          for(int i = 0; i < 40; ++i){// 40
+          for(int i = 0; i < Nbmodle; ++i){// 40
               glBindVertexArray(vao[4]);
               glUniform3f(shadowgen_translationLocation, model1_translation[i][0], model1_translation[i][1], model1_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
@@ -963,26 +994,22 @@ int main( int argc, char **argv )
               glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
           glUniform1f(shadowgen_timeLocation, 0);
-          for(int i = 0; i < 3; ++i){ // 3
+          for(int i = 0; i < 1; ++i){ // 3
               glBindVertexArray(vao[2]);
               glUniform3f(shadowgen_translationLocation, model3_translation[i][0], model3_translation[i][1], model3_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
           }
-          for(int i = 0; i < 14; ++i){// 14
+          for(int i = 0; i < 12; ++i){// 14
               glBindVertexArray(vao[3]);
               glUniform3f(shadowgen_translationLocation, model2_translation[i][0], model2_translation[i][1], model2_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
 
-          // glBindVertexArray(vao[7]);
-          // glUniform3f(shadowgen_translationLocation, lampe_translation[0][0], lampe_translation[0][1], lampe_translation[0][2]);
-          // glUniform1f(shadowgen_timeLocation, t);
-          // glDrawElements(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
-
+        
       // Unbind bufferx 
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
+      glDisable(GL_BLEND);
       // Clear the front buffer
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1030,80 +1057,49 @@ int main( int argc, char **argv )
         glUniform3fv(laccum_lightColorLocation, 1, lightColor);
         glUniform1f(laccum_lightIntensityLocation, lightIntensity);
 
-        glUniform1i(laccum_nbLampLocation,18);
-        for(int i = 0 ; i < 15 ; ++i) {
-            float lampLightPosition[3] = {lampe_translation[i][0],lampe_translation[i][1]+2,lampe_translation[i][2]};
-            float lampLightTarget[3] = {lampe_translation[i][0],lampe_translation[i][1]+2,lampe_translation[i][2]};
-            float lampLightDirection[3];
-            vec3fSub(lampLightTarget, lampLightPosition, lampLightDirection);
-            vec3fNormalize(lampLightDirection, vec3fNorm(lampLightDirection));
-            float lampLightColor[3] = {0., 0.8, .8};
-            float lampLightIntensity = .5;
-
-            glUniform3fv(laccum_lampLightDirectionLocation, 1, lampLightDirection);
-            glUniform3fv(laccum_lampLightPositionLocation, 1, lampLightPosition);
-            glUniform3fv(laccum_lampLightColorLocation, 1, lampLightColor);
-            glUniform1f(laccum_lampLightIntensityLocation, lampLightIntensity);
-        }
-        for(int i = 0 ; i < 3 ; ++i) {
-            float lampLightPosition[3] = {model3_translation[i][0],model3_translation[i][1]+2,model3_translation[i][2]};
-            float lampLightTarget[3] = {model3_translation[i][0],0,model3_translation[i][2]};
-            float lampLightDirection[3];
-            vec3fSub(lampLightTarget, lampLightPosition, lampLightDirection);
-            vec3fNormalize(lampLightDirection, vec3fNorm(lampLightDirection));
-            float lampLightColor[3] = {0.8, 0., 0.};
-            float lampLightIntensity = .1;
-
-            glUniform3fv(laccum_lampLightDirectionLocation, 1, lampLightDirection);
-            glUniform3fv(laccum_lampLightPositionLocation, 1, lampLightPosition);
-            glUniform3fv(laccum_lampLightColorLocation, 1, lampLightColor);
-            glUniform1f(laccum_lampLightIntensityLocation, lampLightIntensity);
-        }
-
       // Draw quad
       glBindVertexArray(vao[1]);
       glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
     
 
-      glDisable(GL_BLEND);
 
-      // Draw UI
-      glActiveTexture(GL_TEXTURE0);
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glViewport(0, 0, width, height);
-      glDisable(GL_DEPTH_TEST);
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      float orthoUI[16];
-      ortho(0, width, 0, height, 0.0, 1.0, orthoUI);
-      glLoadMatrixf(orthoUI);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-      glUseProgram(0);
+      // // Draw UI
+      // glActiveTexture(GL_TEXTURE0);
+      // glEnable(GL_BLEND);
+      // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      // glViewport(0, 0, width, height);
+      // glDisable(GL_DEPTH_TEST);
+      // glMatrixMode(GL_PROJECTION);
+      // glLoadIdentity();
+      // float orthoUI[16];
+      // ortho(0, width, 0, height, 0.0, 1.0, orthoUI);
+      // glLoadMatrixf(orthoUI);
+      // glMatrixMode(GL_MODELVIEW);
+      // glLoadIdentity();
+      // glUseProgram(0);
 
-      unsigned char mbut = 0;
-      int mscroll = 0;
-      int mousex; int mousey;
-      glfwGetMousePos(&mousex, &mousey);
-      mousey = height - mousey;
+      // unsigned char mbut = 0;
+      // int mscroll = 0;
+      // int mousex; int mousey;
+      // glfwGetMousePos(&mousex, &mousey);
+      // mousey = height - mousey;
 
-      if( leftButton == GLFW_PRESS )
-          mbut |= IMGUI_MBUT_LEFT;
+      // if( leftButton == GLFW_PRESS )
+      //     mbut |= IMGUI_MBUT_LEFT;
   
-      imguiBeginFrame(mousex, mousey, mbut, mscroll);
-      const char msg[] = "UI Test";
-      int logScroll = 0;
-      imguiBeginScrollArea("Settings", width - 210, height - 310, 200, 300, &logScroll);
-      imguiSlider("bias", &shadowBias, 0.0000, 0.1, 0.0005);
-      imguiSlider("samples", &shadowSamples, 1, 16, 1);
-      imguiSlider("spread", &shadowSampleSpread, 1, 1000, 1);
-      imguiEndScrollArea();
-      imguiEndFrame();
+      // imguiBeginFrame(mousex, mousey, mbut, mscroll);
+      // const char msg[] = "UI Test";
+      // int logScroll = 0;
+      // imguiBeginScrollArea("Settings", width - 210, height - 310, 200, 300, &logScroll);
+      // imguiSlider("bias", &shadowBias, 0.0000, 0.1, 0.0005);
+      // imguiSlider("samples", &shadowSamples, 1, 16, 1);
+      // imguiSlider("spread", &shadowSampleSpread, 1, 1000, 1);
+      // imguiEndScrollArea();
+      // imguiEndFrame();
 
 
-      imguiRenderGLDraw(); 
+      // imguiRenderGLDraw(); 
       glDisable(GL_BLEND);
 
       // Check for errors

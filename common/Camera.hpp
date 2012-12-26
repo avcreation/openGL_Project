@@ -22,6 +22,9 @@ public :
 	void setPerspective(float near, float far, float fov, float ratio);
 	//! Center the view on a particular point
 	void centerOn(float center[4], float halfDists[4]);
+
+
+	void updateCamera(float before[3], float after[3]);
 	
 	void init(float center[4], float radius, float phi, float theta);
 	//! Returns camera position
@@ -36,6 +39,8 @@ public :
 	float getTheta() { return m_theta; }
 
 	float getRadius() { return m_radius; }
+
+	float * getEye() { return m_eye; }
 
 private :
 	Camera(const Camera &);

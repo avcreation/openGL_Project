@@ -2,6 +2,7 @@
 uniform mat4 Projection;
 uniform mat4 View;
 uniform mat4 Object;
+uniform vec3 Translation;
 
 in vec3 VertexPosition;
 in vec3 VertexNormal;
@@ -13,14 +14,18 @@ out vec3 position;
 
 void main(void)
 {	
-	mat4 roatationX = mat4(1, 0, 0, 0,
-						   0,  cos(-3.14/2),   -sin(-3.14/2),    0,
-							 0, sin(-3.14/2), cos(-3.14/2), 0,
-							    0,    0,   0,    1);
+	mat3 roatationX = mat3(1, 0, 0,
+						   0,  cos(-3.14/2),   -sin(-3.14/2),
+							 0, sin(-3.14/2), cos(-3.14/2));
 	uv = VertexTexCoord;
-	normal = vec3(Object * vec4(VertexNormal, 1.0));; 
-	position = vec3(Object * vec4(VertexPosition, 1.0));
-	vec4 tmp = Projection * View * roatationX * Object * vec4(position, 1.0);
+	normal = vec3(Object * vec4(VertexNormal, 1.0));
+
+	vec3 pos = VertexPosition*roatationX + Translation;
+	position = vec3(Object * vec4(pos, 1.0));
+
+
+	//position = vec3(Object * vec4(VertexPosition, 1.0));
+	vec4 tmp = Projection * View * Object * vec4(position, 1.0);
 	gl_Position = tmp.xyww;
 }
 

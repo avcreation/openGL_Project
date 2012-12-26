@@ -35,12 +35,6 @@ uniform float ShadowBias;
 uniform float ShadowSamples;
 uniform float ShadowSampleSpread;
 
-uniform vec3  LampLightPosition;
-uniform vec3  LampLightDirection;
-uniform vec3  LampLightColor;
-uniform float LampLightIntensity;
-uniform int   NombreLampe;
-
 vec2 poissonDisk[16] = vec2[](
         vec2( -0.94201624, -0.39906216 ),
         vec2( 0.94558609, -0.76890725 ),
@@ -138,11 +132,7 @@ void main(void)
 
 	vec3 cspotlight1 = directionalLight(LightColor, LightIntensity, LightDirection, n, position, diffuse, spec, CameraPosition );
 
-	vec3 lampLight = vec3(0,0,0);
-	for(int i = 0 ; i < NombreLampe ; ++i) {
-		lampLight += pointLight(LampLightColor, LampLightIntensity, LampLightPosition, n, position, diffuse, spec, CameraPosition );
-	}
-
+	
 	if (wlightSpacePosition.w > 0.0  && lightSpacePosition.x > 0.0 && lightSpacePosition.x < 1.0 && lightSpacePosition.y > 0.0 && lightSpacePosition.y < 1.0 )
 	{
 		
@@ -156,23 +146,23 @@ void main(void)
 			    visibility-=visibilityOffset;
 			}
 		}
-		Color = vec4((cspotlight1+lampLight) * visibility, 1.0);
+		Color = vec4((cspotlight1) * visibility, 1.0);
 
 	}
 	else
 	{
-		Color = vec4(cspotlight1+lampLight, 1.0);
-	}
-	/*
-	float shadowDepth = texture(Shadow, lightSpacePosition.xy).r;
-	Color = vec4(lightSpacePosition.z - shadowDepth , 0.0, 0.0, 1.0);
-
-
-	if (shadowDepth + 0.0001 < lightSpacePosition.z )
-		Color = vec4(0.0, 0.0, 0.0, 1.0);
-	else
 		Color = vec4(cspotlight1, 1.0);
-*/
+	}
+	
+	// float shadowDepth = texture(Shadow, lightSpacePosition.xy).r;
+	// Color = vec4(lightSpacePosition.z - shadowDepth , 0.0, 0.0, 1.0);
+
+
+	// if (shadowDepth + 0.0001 < lightSpacePosition.z )
+	// 	Color = vec4(0.0, 0.0, 0.0, 1.0);
+	// else
+	// 	Color = vec4(cspotlight1, 1.0);
+
 	//Color = vec4(lightSpacePosition.z, 0.0, 0.0, 1.0);
 	//Color = vec4(lightSpacePosition.xy, -lightSpacePosition.z, 1.0);
 
