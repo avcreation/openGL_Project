@@ -113,14 +113,20 @@ void Camera::centerOn(float center[4], float halfDists[4])
 
 void Camera::updateCamera(float * before, float * after) {
 	float * center = getCenter();
-	float beforeVec[3] = {center[0]-before[0], center[1]-before[1], center[2]-before[2]};
-	float afterVec[3] = {center[0]-after[0], center[1]-after[1], center[2]-after[2]};
+	float xVect[3] = {1., 0., 0.};
+	float afterVec[3] = {after[0]-center[0], after[1]-center[1], after[2]-center[2]};
+	float afterVecXZ[3] = {afterVec[0], 0., afterVec[2]};
+	float afterVecXY[3] = {afterVec[0], afterVec[1], 0.};
 
-	float alpha = acos(vec3fDot(beforeVec, afterVec)/(vec3fNorm(beforeVec)* vec3fNorm(afterVec)));
-	std::cout << alpha << std::endl;
+	float beforeVec[3] = {before[0]-center[0], before[1]-center[1], before[2]-center[2]};
+	float beforeVecXZ[3] = {beforeVec[0], 0., beforeVec[2]};
+	float beforeVecXY[3] = {beforeVec[0], beforeVec[1], 0.};
+
+
+	float alpha = acos(vec3fDot(beforeVecXZ, afterVecXZ)/(vec3fNorm(afterVecXZ)*vec3fNorm(beforeVecXZ)));
 	float theta = m_theta - alpha;
-	init(center, vec3fNorm(beforeVec), m_phi, theta);
-	// this->m_eye[0] = after[0]; this->m_eye[1] = after[1]; this->m_eye[2] = after[2];
+
+	init(center, m_radius, m_phi, theta);
 }
 
 

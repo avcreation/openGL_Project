@@ -65,6 +65,8 @@ bool DoTheImportThing(const std::string& pFile, int *& obj_FacesIndices, float *
 void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *& obj_Normals, float *& obj_UVs, 
                       unsigned int &obj_NumFaces,  unsigned int &obj_NumVertices, GLuint & vao, GLuint * vbo, int startVBO);
 
+bool importSpline(const std::string& pFile, float *& obj_Vertices, unsigned int &obj_NumVertices, int numMesh, float proportion);
+
 void init_gui_states(GUIStates & guiStates)
 {
     guiStates.panLock = false;
@@ -80,6 +82,16 @@ void init_gui_states(GUIStates & guiStates)
 int main( int argc, char **argv )
 {
  
+   bool cameraAuto = true;
+   if(argc > 1){
+      if(strcmp(argv[1], "-c") == 0){
+        if(strcmp(argv[2],"oui") == 0)
+            cameraAuto = true;
+        else
+            cameraAuto = false;
+      }
+   }
+
   ///////////////////////////////////// ID TRANSFORMATIONS //////////////////////////////
     float IdTranslation[3] = {0,0,0};
     float IdRotation[16] = {1,0,0,0,
@@ -158,7 +170,7 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "Diffuse %dx%d:%d\n", x, y, comp);
+    
     unsigned char * spec = stbi_load("textures/spnza_bricks_a_spec.tga", &x, &y, &comp, 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, textures[1]);
@@ -167,9 +179,8 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "Spec %dx%d:%d\n", x, y, comp);
     
-    unsigned char * box = stbi_load("textures/skybox.tga", &x, &y, &comp, 3);
+    unsigned char * box = stbi_load("textures/skybox2.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, textures[4]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, box);
@@ -177,7 +188,6 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "Box %dx%d:%d\n", x, y, comp);
 
     unsigned char * grass = stbi_load("textures/grass2.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE5);
@@ -187,7 +197,6 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "grass %dx%d:%d\n", x, y, comp);
 
     unsigned char * specgrass = stbi_load("textures/grass2.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE6);
@@ -197,7 +206,6 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "specgrass %dx%d:%d\n", x, y, comp);
 
     unsigned char * diffuse2 = stbi_load("textures/gigul.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE7);
@@ -207,7 +215,6 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "gigul %dx%d:%d\n", x, y, comp);
 
     unsigned char * diffuse3 = stbi_load("textures/jeflum.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE8);
@@ -217,8 +224,6 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "jeflum %dx%d:%d\n", x, y, comp);
-
 
     unsigned char * transp = stbi_load("textures/trans.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE9);
@@ -228,7 +233,6 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "transp %dx%d:%d\n", x, y, comp);
 
     unsigned char * transpec = stbi_load("textures/transSpec.tga", &x, &y, &comp, 1);
     glActiveTexture(GL_TEXTURE10);
@@ -238,7 +242,6 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "transpec %dx%d:%d\n", x, y, comp);
 
     // Try to load and compile shader
     int status;
@@ -370,6 +373,9 @@ int main( int argc, char **argv )
     float * skybox_Vertices;
     float * skybox_Normals;
     float * skybox_UVs;
+    
+    float * spline_Vertices;
+    uint    spline_NumVertices;
 
 
     // Init a cube
@@ -628,7 +634,7 @@ int main( int argc, char **argv )
 
 
 
-
+    importSpline("obj/spline.obj", spline_Vertices, spline_NumVertices, 0, 20);
 
 
 
@@ -670,33 +676,24 @@ int main( int argc, char **argv )
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     bool printInfos = true;
-    float after[39] = {-3.5,   0,   0, 
-                      -3.5 ,  0  ,6.5, 
-                      4.3    ,0  ,2., 
-                      -4.1 ,0  ,2., 
-                      -3.1 ,0  ,-0.1,
-                      -4.1 ,0  ,4.3, 
-                      4.6  ,0  ,4.3, 
-                      4.2  ,0  ,6.3, 
-                      2.8  ,0  ,7.9, 
-                      0.4  ,0  ,8.2, 
-                      -1.9  ,0  ,7.8, 
-                      0,0,-1.25, 
-                      3.   ,-1  ,0};
-
+  
+    float before[3] = {camera.getEye()[0], 0, camera.getEye()[2]};
 
  
-    float before[3] = {camera.getEye()[0], 0, camera.getEye()[2]};
-    int index = 0; 
+    int index = 0;
     do
     {
-      if(index > 12)
-        index = 0;
       t = glfwGetTime();
-     // std::cout << t << std::endl;
-      camera.updateCamera(before, after);
-      before[0] = after[3*index+0]; before[1] = after[3*index+1]; before[2] = after[3*index+2];
-      index++;
+      if(cameraAuto){
+          if(index > spline_NumVertices)
+            index = 0;
+          // std::cout << t << std::endl;
+          float after[3] = {spline_Vertices[3*index], spline_Vertices[3*index + 1], spline_Vertices[3*index + 2]};
+          camera.updateCamera(before, after);
+          for(int i = 0 ; i < 3 ; ++i)
+            before[i] = after[i];
+      }
+      //index++;    
       // Mouse states
       int leftButton = glfwGetMouseButton( GLFW_MOUSE_BUTTON_LEFT );
       int rightButton = glfwGetMouseButton( GLFW_MOUSE_BUTTON_RIGHT );
@@ -1189,6 +1186,31 @@ bool DoTheImportThing(const std::string& pFile, int *& obj_FacesIndices, float *
   return true;
 }
 
+bool importSpline(const std::string& pFile, float *& obj_Vertices, unsigned int &obj_NumVertices, int numMesh, float proportion) {
+  // Create an instance of the Importer class
+  Assimp::Importer importer;
+
+  // And have it read the given file with some example postprocessing
+  // Usually - if speed is not the most important aspect for you - you'll 
+  // propably to request more postprocessing than we do in this example.
+  const aiScene* scene = importer.ReadFile( pFile, 
+        aiProcess_CalcTangentSpace       | 
+        aiProcess_Triangulate            |
+        aiProcess_JoinIdenticalVertices  |
+        aiProcess_SortByPType);
+    
+    
+    proportion *= 5;
+    obj_NumVertices = scene->mMeshes[numMesh]->mNumVertices;
+    obj_Vertices = new float[3*obj_NumVertices];
+    for(size_t j = 0 ; j < obj_NumVertices ; ++j) {
+        obj_Vertices[j*3] = (scene->mMeshes[numMesh]->mVertices[j])[0]/proportion;
+        obj_Vertices[j*3+1] = (scene->mMeshes[numMesh]->mVertices[j])[1]/proportion;
+        obj_Vertices[j*3+2] = (scene->mMeshes[numMesh]->mVertices[j])[2]/proportion;
+    }
+
+    return true;
+}
 
 
 void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *& obj_Normals, float *& obj_UVs, 
