@@ -17,4 +17,4 @@ Launch
 
 Needed Library
 --------------
-Boost, Assimp
+Boost, Assimp, openAL
