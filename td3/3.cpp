@@ -11,6 +11,11 @@
 #include "imgui.h"
 #include "imguiRenderGL.h"
 
+#include <AL/al.h>
+//#include <al/alc.h>
+//#include <AL/alu.h>
+#include <AL/alut.h>
+
 #include "FramebufferGL.hpp"
 #include "ShaderGLSL.hpp"
 #include "Camera.hpp"
@@ -67,6 +72,12 @@ void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *
 
 bool importSpline(const std::string& pFile, float *& obj_Vertices, unsigned int &obj_NumVertices, int numMesh, float proportion);
 
+void SetListenerValues();
+
+ALboolean LoadALData();
+ALboolean LoadALData2();
+
+
 void init_gui_states(GUIStates & guiStates)
 {
     guiStates.panLock = false;
@@ -78,6 +89,22 @@ void init_gui_states(GUIStates & guiStates)
     guiStates.time = 0.0;
     guiStates.playing = false;
 }
+
+ALuint AudioBuffer;
+    ALuint MainAudioSource;
+    ALuint AudioBuffer2;
+    ALuint AudioSource2;
+
+    // Position of the source sound.
+    ALfloat SourcePos[] = { 0.0, 0.0, 0.0 };
+    // Velocity of the source sound.
+    ALfloat SourceVel[] = { 0.0, 0.0, 0.0 };
+    // Position of the listener.
+    ALfloat ListenerPos[] = { 0.0, 0.0, 0.0 };
+    // Velocity of the listener.
+    ALfloat ListenerVel[] = { 0.0, 0.0, 0.0 };
+    // Orientation of the listener. (first 3 elements are "at", second 3 are "up")
+    ALfloat ListenerOri[] = { 0.0, 0.0, -1.0,  0.0, 1.0, 0.0 };
 
 int main( int argc, char **argv )
 {
@@ -157,11 +184,12 @@ int main( int argc, char **argv )
 
     // Load images and upload textures
 
-    GLuint textures[11];
-    glGenTextures(11, textures);
+    GLuint textures[15];
+    glGenTextures(15, textures);
     int x;
     int y;
     int comp; 
+    // buildings
     unsigned char * diffuse = stbi_load("textures/ishiza.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textures[0]);
@@ -180,6 +208,7 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
+    // skybox
     unsigned char * box = stbi_load("textures/skybox2.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, textures[4]);
@@ -189,6 +218,7 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // grass
     unsigned char * grass = stbi_load("textures/grass2.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, textures[5]);
@@ -207,6 +237,7 @@ int main( int argc, char **argv )
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // buildings
     unsigned char * diffuse2 = stbi_load("textures/gigul.tga", &x, &y, &comp, 3);
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_2D, textures[7]);
@@ -238,6 +269,44 @@ int main( int argc, char **argv )
     glActiveTexture(GL_TEXTURE10);
     glBindTexture(GL_TEXTURE_2D, textures[10]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, x, y, 0, GL_RED, GL_UNSIGNED_BYTE,  transp);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // branches
+    unsigned char * branch = stbi_load("textures/branch.tga", &x, &y, &comp, 3);
+    glActiveTexture(GL_TEXTURE11);
+    glBindTexture(GL_TEXTURE_2D, textures[11]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, branch);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned char * specBranch = stbi_load("textures/branch.tga", &x, &y, &comp, 3);
+    glActiveTexture(GL_TEXTURE12);
+    glBindTexture(GL_TEXTURE_2D, textures[12]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, specBranch);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // leaves
+    unsigned char * leaf = stbi_load("textures/leaf.tga", &x, &y, &comp, 3);
+    glActiveTexture(GL_TEXTURE13);
+    glBindTexture(GL_TEXTURE_2D, textures[13]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, leaf);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned char * specLeaf = stbi_load("textures/leaf.tga", &x, &y, &comp, 3);
+    glActiveTexture(GL_TEXTURE14);
+    glBindTexture(GL_TEXTURE_2D, textures[14]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, specLeaf);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -330,6 +399,26 @@ int main( int argc, char **argv )
     GLuint shadowgen_translationLocation = glGetUniformLocation(shadowgen_shader.program, "translation");
 
 
+    // Initialisation systeme audio open AL
+    // 
+     alutInit(&argc, argv);
+     alGetError();
+     SetListenerValues();
+
+    // Load the wav data.
+    if (LoadALData2() == AL_FALSE)
+         return -1;
+    
+    alSourcePlay(AudioSource2);
+
+    // Load the wav data.
+    if (LoadALData() == AL_FALSE)
+        return -1;
+    //SetListenerValues();
+    alSourcePlay(MainAudioSource);
+    
+
+
     // --------------------------------------------------------------------
     //------------------------- Let's Go ----------------------------------
     //---------------------------------------------------------------------
@@ -373,6 +462,30 @@ int main( int argc, char **argv )
     float * skybox_Vertices;
     float * skybox_Normals;
     float * skybox_UVs;
+
+      // Init trunc and branches of a tree
+    int *   branch_FacesIndices;
+    uint    branch_NumFaces;
+    uint    branch_NumVertices;
+    float * branch_Vertices;
+    float * branch_Normals;
+    float * branch_UVs;
+
+      // Init leaves of tree
+    int *   leaves_FacesIndices;
+    uint    leaves_NumFaces;
+    uint    leaves_NumVertices;
+    float * leaves_Vertices;
+    float * leaves_Normals;
+    float * leaves_UVs;
+
+      // Init leaves of tree
+    int *   hollowCube_FacesIndices;
+    uint    hollowCube_NumFaces;
+    uint    hollowCube_NumVertices;
+    float * hollowCube_Vertices;
+    float * hollowCube_Normals;
+    float * hollowCube_UVs;
     
     float * spline_Vertices;
     uint    spline_NumVertices;
@@ -412,11 +525,11 @@ int main( int argc, char **argv )
 
 /////////////// ----------------------------- Init Buffer -------------------- ////////////////////
     // Vertex Array Objects
-    GLuint vao[8];
-    glGenVertexArrays(8, vao);
+    GLuint vao[11];
+    glGenVertexArrays(11, vao);
     // Vertex Buffer Objects
-    GLuint vbo[32];
-    glGenBuffers(32, vbo);
+    GLuint vbo[44];
+    glGenBuffers(44, vbo);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -602,6 +715,47 @@ int main( int argc, char **argv )
     float * lampe_translation[15] = {lampe_translation1,lampe_translation2,lampe_translation3,lampe_translation4,lampe_translation5,lampe_translation6,lampe_translation7,lampe_translation8,lampe_translation9,lampe_translation10,lampe_translation11,lampe_translation12,lampe_translation13,lampe_translation14,lampe_translation15};
     
    BindingInstanceLike(lampe_FacesIndices, lampe_Vertices, lampe_Normals, lampe_UVs, lampe_NumFaces, lampe_NumVertices, vao[5], &vbo[0], 20);
+
+
+    ////////////////////// floating hollow cubes 
+    // nb:  1
+   DoTheImportThing("obj/hollowCube.obj", hollowCube_FacesIndices, hollowCube_Vertices, hollowCube_Normals, hollowCube_UVs, hollowCube_NumFaces, hollowCube_NumVertices, 0, 5);
+   float hollowCube_translation[3] = {0, 1.1, 3.2};
+   BindingInstanceLike(hollowCube_FacesIndices, hollowCube_Vertices, hollowCube_Normals, hollowCube_UVs, hollowCube_NumFaces, hollowCube_NumVertices, vao[8], &vbo[0], 32);
+
+   ////////////////////// leaves and branches 
+    // nb:  1
+   float tree_translation1[3] = {0.0, -1, 0.0};              float tree_translation2[3] = {2.0, -1, 1.0};             float tree_translation3[3] = {-2, -1, -1};
+   float tree_translation4[3] = {-4, -1, 1};                 float tree_translation5[3] = {-1, -1, 4};                float tree_translation6[3] = {5, -1, 5};
+   float tree_translation7[3] = {9, -1, 1};                  float tree_translation8[3] = {6, -1, -1.0};              float tree_translation9[3] = {5, -1, -2.0};
+   float tree_translation10[3] = {3, -1, -5.5};              float tree_translation11[3] = {2.0, -1, -5.5};           float tree_translation12[3] = {-0.5, -1, 9};
+   float tree_translation13[3] = {5, -1, -10};               float tree_translation14[3] = {6.5, -1, -10};            float tree_translation15[3] = {6.5, -1, -9};
+   float tree_translation16[3] = {7, -1, -10.5};             float tree_translation17[3] = {8, -1, -9};               float tree_translation18[3] = {10, -1, -8.5};
+   float tree_translation19[3] = {-2, -1, -10};              float tree_translation20[3] = {-7, -1, -2.5};            float tree_translation21[3] = {-8, -1, -1.5};
+   float tree_translation22[3] = {-6.5, -1, -7};             float tree_translation23[3] = {-7, -1, -9};              float tree_translation24[3] = {-7.5, -1, -8};
+   float tree_translation25[3] = {-8.5, -1, -8};             float tree_translation26[3] = {-9, -1, -7};              float tree_translation27[3] = {-7, -1, 2.5};
+   float tree_translation28[3] = {-8, -1, 3};                float tree_translation29[3] = {-8, -1, 3.5};             float tree_translation30[3] = {-8, -1, 4.5};
+   float tree_translation31[3] = {-8.5, -1, 12};             float tree_translation32[3] = {-9, -1, 11};              float tree_translation33[3] = {-9.5, -1, 10};
+   float tree_translation34[3] = {-10, -1, 11};              float tree_translation35[3] = {-10.5, -1, 9.5};          float tree_translation36[3] = {13, -1, 7};
+   float tree_translation37[3] = {4, -1, 12};                float tree_translation38[3] = {5, -1, 11};               float tree_translation39[3] = {6, -1, 10};
+   float tree_translation40[3] = {6.5, -1, 11.5};            float tree_translation41[3] = {8, -1, 12};               float tree_translation42[3] = {11, -1, 8};
+   float tree_translation43[3] = {11, -1, 10};               float tree_translation44[3] = {12, -1, 8};               float tree_translation45[3] = {13, -1, 10};
+   float * tree_translation[45] = {tree_translation1, tree_translation2, tree_translation3, tree_translation4, tree_translation5,
+                                    tree_translation6, tree_translation7, tree_translation8, tree_translation9, tree_translation10,
+                                    tree_translation11, tree_translation12, tree_translation13, tree_translation14, tree_translation15,
+                                    tree_translation16, tree_translation17, tree_translation18, tree_translation19, tree_translation20,
+                                    tree_translation21, tree_translation22, tree_translation23, tree_translation24, tree_translation25,
+                                    tree_translation26, tree_translation27, tree_translation28, tree_translation29, tree_translation30,
+                                    tree_translation31, tree_translation32, tree_translation33, tree_translation34, tree_translation35,
+                                    tree_translation36, tree_translation37, tree_translation38, tree_translation39, tree_translation40,
+                                    tree_translation41, tree_translation42, tree_translation43, tree_translation44, tree_translation45
+   };
+   DoTheImportThing("obj/branches.obj", branch_FacesIndices, branch_Vertices, branch_Normals, branch_UVs, branch_NumFaces, branch_NumVertices, 0, 3);
+   BindingInstanceLike(branch_FacesIndices, branch_Vertices, branch_Normals, branch_UVs, branch_NumFaces, branch_NumVertices, vao[9], &vbo[0], 36);
+   DoTheImportThing("obj/feuilles.obj", leaves_FacesIndices, leaves_Vertices, leaves_Normals, leaves_UVs, leaves_NumFaces, leaves_NumVertices, 0, 3);
+   BindingInstanceLike(leaves_FacesIndices, leaves_Vertices, leaves_Normals, leaves_UVs, leaves_NumFaces, leaves_NumVertices, vao[10], &vbo[0], 40);
+
+
 
      ////////////////////// Skybox
     // nb:  
@@ -880,10 +1034,16 @@ int main( int argc, char **argv )
           }
 
           glUniform1f(gbuffer_timeLocation, t);
-          for(int i = 0; i < 15; ++i){// 15
+          for(int i = 0; i < 15; ++i){// 15 lamps
               glBindVertexArray(vao[5]);
               glUniform3f(gbuffer_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
               glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+          glUniform1f(gbuffer_timeLocation, t/1.5);
+          for(int i = 0; i < 1; ++i){// 1 floating cube
+              glBindVertexArray(vao[8]);
+              glUniform3f(gbuffer_translationLocation, hollowCube_translation[0], hollowCube_translation[1], hollowCube_translation[2]);
+              glDrawElements(GL_TRIANGLES, hollowCube_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
 
           glUniform1i(gbuffer_diffuseLocation, 7);
@@ -908,6 +1068,33 @@ int main( int argc, char **argv )
               glUniform1f(gbuffer_rotationLocation, Model2_angle[i]);
               glUniform3f(gbuffer_translationLocation, model2_translation[i][0], model2_translation[i][1], model2_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+
+          glUniform1i(gbuffer_diffuseLocation, 11);
+          glUniform1i(gbuffer_specLocation, 12);
+          // Bind textures
+          glActiveTexture(GL_TEXTURE11);
+          glBindTexture(GL_TEXTURE_2D, textures[11]);
+          glActiveTexture(GL_TEXTURE12);
+          glBindTexture(GL_TEXTURE_2D, textures[12]);
+
+          for(int i = 0; i < 45; ++i){// 1 set of branches
+              glBindVertexArray(vao[9]);
+              glUniform3f(gbuffer_translationLocation, tree_translation[i][0], tree_translation[i][1], tree_translation[i][2]);
+              glDrawElements(GL_TRIANGLES, branch_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+          glUniform1i(gbuffer_diffuseLocation, 13);
+          glUniform1i(gbuffer_specLocation, 14);
+          // Bind textures
+          glActiveTexture(GL_TEXTURE13);
+          glBindTexture(GL_TEXTURE_2D, textures[13]);
+          glActiveTexture(GL_TEXTURE14);
+          glBindTexture(GL_TEXTURE_2D, textures[14]);
+
+          for(int i = 0; i < 45; ++i){// 1 set of leaves
+              glBindVertexArray(vao[10]);
+              glUniform3f(gbuffer_translationLocation, tree_translation[i][0], tree_translation[i][1], tree_translation[i][2]);
+              glDrawElements(GL_TRIANGLES, leaves_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
 
 
@@ -979,27 +1166,43 @@ int main( int argc, char **argv )
          
           glUniform1f(shadowgen_timeLocation, 0);
 
-          for(int i = 0; i < Nbmodle; ++i){// 40
+          for(int i = 0; i < Nbmodle; ++i){// 40 model 1
               glBindVertexArray(vao[4]);
               glUniform3f(shadowgen_translationLocation, model1_translation[i][0], model1_translation[i][1], model1_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model1_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
           glUniform1f(shadowgen_timeLocation, t);
-          for(int i = 0; i < 15; ++i){// 15
+          for(int i = 0; i < 15; ++i){// 15 lamps
               glBindVertexArray(vao[5]);
               glUniform3f(shadowgen_translationLocation, lampe_translation[i][0], lampe_translation[i][1], lampe_translation[i][2]);
               glDrawElements(GL_TRIANGLES, lampe_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
+          glUniform1f(shadowgen_timeLocation, t/1.5);
+          for(int i = 0; i < 1; ++i){// 1 floating cube
+              glBindVertexArray(vao[8]);
+              glUniform3f(shadowgen_translationLocation, hollowCube_translation[0], hollowCube_translation[1], hollowCube_translation[2]);
+              glDrawElements(GL_TRIANGLES, hollowCube_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
           glUniform1f(shadowgen_timeLocation, 0);
-          for(int i = 0; i < 1; ++i){ // 3
+          for(int i = 0; i < 1; ++i){ //  model 3
               glBindVertexArray(vao[2]);
               glUniform3f(shadowgen_translationLocation, model3_translation[i][0], model3_translation[i][1], model3_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model3_NumFaces * 3, GL_UNSIGNED_INT, (void*)0); 
           }
-          for(int i = 0; i < 12; ++i){// 14
+          for(int i = 0; i < 12; ++i){// 14 model 2
               glBindVertexArray(vao[3]);
               glUniform3f(shadowgen_translationLocation, model2_translation[i][0], model2_translation[i][1], model2_translation[i][2]);
               glDrawElements(GL_TRIANGLES, model2_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+          for(int i = 0; i < 45; ++i){// 1 set of branches
+              glBindVertexArray(vao[9]);
+              glUniform3f(shadowgen_translationLocation, tree_translation[i][0], tree_translation[i][1], tree_translation[i][2]);
+              glDrawElements(GL_TRIANGLES, branch_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
+          }
+          for(int i = 0; i < 45; ++i){// 1 set of leaves
+              glBindVertexArray(vao[10]);
+              glUniform3f(shadowgen_translationLocation, tree_translation[i][0], tree_translation[i][1], tree_translation[i][2]);
+              glDrawElements(GL_TRIANGLES, leaves_NumFaces * 3, GL_UNSIGNED_INT, (void*)0);
           }
 
         
@@ -1118,6 +1321,11 @@ int main( int argc, char **argv )
 
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
+
+    // fin audio
+    alDeleteBuffers(1, &AudioBuffer);
+    alDeleteSources(1, &MainAudioSource);
+    alutExit();
 
     exit( EXIT_SUCCESS );
 }
@@ -1238,4 +1446,78 @@ void BindingInstanceLike(int *& obj_FacesIndices, float *& obj_Vertices, float *
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
     glBufferData(GL_ARRAY_BUFFER, sizeof(obj_UVs)*obj_NumVertices*3, obj_UVs, GL_STATIC_DRAW);
+}
+
+
+void SetListenerValues()
+{
+    alListenerfv(AL_POSITION,    ListenerPos);
+    alListenerfv(AL_VELOCITY,    ListenerVel);
+    alListenerfv(AL_ORIENTATION, ListenerOri);
+}
+
+ALboolean LoadALData()
+{
+    // Variables to load into.
+    ALboolean loop = true;
+
+    // Load wav data into a buffer.
+    alGenBuffers(1, &AudioBuffer);
+    if (alGetError() != AL_NO_ERROR)
+        return AL_FALSE;
+
+    AudioBuffer = alutCreateBufferFromFile("sons/oiseau_vent2.wav");
+
+    // Bind buffer with a source.
+    alGenSources(1, &MainAudioSource);
+
+    if (alGetError() != AL_NO_ERROR)
+        return AL_FALSE;
+
+    alSourcei (MainAudioSource, AL_BUFFER,   AudioBuffer   );
+    alSourcef (MainAudioSource, AL_PITCH,    1.0f     );
+    alSourcef (MainAudioSource, AL_GAIN,     1.0f     );
+    alSourcefv(MainAudioSource, AL_POSITION, SourcePos);
+    alSourcefv(MainAudioSource, AL_VELOCITY, SourceVel);
+    alSourcei (MainAudioSource, AL_LOOPING,  loop     );
+
+    // Do another error check and return.
+    if (alGetError() == AL_NO_ERROR)
+        return AL_TRUE;
+
+    return AL_FALSE;
+
+}
+
+ALboolean LoadALData2()
+{
+    // Variables to load into.
+    ALboolean loop = true;
+
+     // Load wav data into a buffer.
+    alGenBuffers(1, &AudioBuffer2);
+    if (alGetError() != AL_NO_ERROR)
+        return AL_FALSE;
+
+    AudioBuffer2 = alutCreateBufferFromFile("sons/effetcool.wav");
+
+    // Bind buffer with a source.
+    alGenSources(1, &AudioSource2);
+
+    if (alGetError() != AL_NO_ERROR)
+        return AL_FALSE;
+
+    alSourcei (AudioSource2, AL_BUFFER,   AudioBuffer2   );
+    alSourcef (AudioSource2, AL_PITCH,    1.0f     );
+    alSourcef (AudioSource2, AL_GAIN,     0.3f     );
+    alSourcefv(AudioSource2, AL_POSITION, SourcePos);
+    alSourcefv(AudioSource2, AL_VELOCITY, SourceVel);
+    alSourcei (AudioSource2, AL_LOOPING,  loop     );
+
+    // Do another error check and return.
+    if (alGetError() == AL_NO_ERROR)
+        return AL_TRUE;
+
+    return AL_FALSE;
+
 }
