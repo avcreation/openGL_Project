@@ -24,12 +24,12 @@ ifeq ($(config),debug)
   TARGETDIR  = bin/debug/td3
   TARGET     = $(TARGETDIR)/td3
   DEFINES   += -DGLEW_STATIC -DDEBUG
-  INCLUDES  += -Ilib/glfw/include -Isrc -Icommon -Ilib
+  INCLUDES  += -Ilib/glfw/include -Isrc -Icommon -Ilib -Ial
   CPPFLAGS  += -MMD -MP $(DEFINES) $(INCLUDES)
   CFLAGS    += $(CPPFLAGS) $(ARCH) -g
   CXXFLAGS  += $(CFLAGS) 
   LDFLAGS   += -Lbin/debug
-  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread -lassimp
+  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread -lassimp3.0 -lalut -lopenal
   RESFLAGS  += $(DEFINES) $(INCLUDES) 
   LDDEPS    += bin/debug/libglfw.a bin/debug/libglew.a bin/debug/libstb_image.a
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(ARCH) $(LIBS)
@@ -51,7 +51,7 @@ ifeq ($(config),release)
   CFLAGS    += $(CPPFLAGS) $(ARCH) -O2
   CXXFLAGS  += $(CFLAGS) 
   LDFLAGS   += -s -Lbin/release
-  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread
+  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread -lalut
   RESFLAGS  += $(DEFINES) $(INCLUDES) 
   LDDEPS    += bin/release/libglfw.a bin/release/libglew.a bin/release/libstb_image.a
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(ARCH) $(LIBS)
@@ -73,7 +73,7 @@ ifeq ($(config),debug64)
   CFLAGS    += $(CPPFLAGS) $(ARCH) -g -m64
   CXXFLAGS  += $(CFLAGS) 
   LDFLAGS   += -m64 -L/usr/lib64 -Lbin/debug
-  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread
+  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread -lalut
   RESFLAGS  += $(DEFINES) $(INCLUDES) 
   LDDEPS    += bin/debug/libglfw.a bin/debug/libglew.a bin/debug/libstb_image.a
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(ARCH) $(LIBS)
@@ -95,7 +95,7 @@ ifeq ($(config),release64)
   CFLAGS    += $(CPPFLAGS) $(ARCH) -O2 -m64
   CXXFLAGS  += $(CFLAGS) 
   LDFLAGS   += -s -m64 -L/usr/lib64 -Lbin/release
-  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread
+  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread -lalut -lopenal -lassimp3.0
   RESFLAGS  += $(DEFINES) $(INCLUDES) 
   LDDEPS    += bin/release/libglfw.a bin/release/libglew.a bin/release/libstb_image.a
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(ARCH) $(LIBS)
@@ -117,7 +117,7 @@ ifeq ($(config),debug32)
   CFLAGS    += $(CPPFLAGS) $(ARCH) -g -m32
   CXXFLAGS  += $(CFLAGS) 
   LDFLAGS   += -m32 -L/usr/lib32 -Lbin/debug
-  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread
+  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread -lalut
   RESFLAGS  += $(DEFINES) $(INCLUDES) 
   LDDEPS    += bin/debug/libglfw.a bin/debug/libglew.a bin/debug/libstb_image.a
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(ARCH) $(LIBS)
@@ -139,7 +139,7 @@ ifeq ($(config),release32)
   CFLAGS    += $(CPPFLAGS) $(ARCH) -O2 -m32
   CXXFLAGS  += $(CFLAGS) 
   LDFLAGS   += -s -m32 -L/usr/lib32 -Lbin/release
-  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread
+  LIBS      += -lglfw -lglew -lstb_image -lX11 -lXrandr -lrt -lGL -lGLU -lpthread -lalut
   RESFLAGS  += $(DEFINES) $(INCLUDES) 
   LDDEPS    += bin/release/libglfw.a bin/release/libglew.a bin/release/libstb_image.a
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(LDFLAGS) $(RESOURCES) $(ARCH) $(LIBS)
